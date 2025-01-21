@@ -102,7 +102,7 @@ def menuFeature(stdLevel, stdDegree, stdID):
         elif choice == "3":
             majorTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "4":
-            minorTranscriptFeature()
+            minorTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "5":
             fullTranscriptFeature()
         elif choice == "6":
@@ -166,7 +166,7 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
             degDf = dataFrame.loc[dataFrame["Degree"].str.contains(degree)]
             stat_txt += f"""
             ======================================================
-            ************   Undergraduate Level   ************
+            **********   Undergraduate Level   **********
             ======================================================
             Overall Average (major and minor) for all terms: {round(degDf.Grade.mean(), 2)}
             Average (major and minor) of each term: {round(degDf.Grade.sum() / degDf.creditHours.sum(), 2)}
@@ -198,7 +198,7 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
             degDf = dataFrame.loc[dataFrame["Degree"].str.contains(degree)]
             stat_txt += f"""
             ======================================================
-            ************   Graduate ({degree}) Level   ************
+            **********   Graduate ({degree}) Level   **********
             ======================================================
             Overall Average (major and minor) for all terms: {round(degDf.Grade.mean(), 2)}
             Average (major and minor) of each term: {round(degDf.Grade.sum() / degDf.creditHours.sum(), 2)}
@@ -256,9 +256,12 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 {'=' * 55}
 """
 
+    overall_major_sum = 0
+    overall_major_credits = 0
+
     # Separate processing for undergraduate and graduate levels
     for level in stdLevel:
-        level_courses = dataFrame[dataFrame["Level"] == level]
+        level_courses = dataFrame[(dataFrame["Level"] == level) & (dataFrame["courseType"] == "Major")]
         if level_courses.empty:
             continue
 
@@ -278,19 +281,20 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
                 )
 
             # Compute averages
-            major_courses = termDf[termDf["courseType"] == "Major"]
-            if not major_courses.empty:
-                major_avg = round(major_courses["Grade"].sum() / major_courses["creditHours"].sum(), 2)
+            if not termDf.empty:
+                term_major_avg = round(termDf["Grade"].sum() / termDf["creditHours"].sum(), 2)
+                overall_major_sum += termDf["Grade"].sum()
+                overall_major_credits += termDf["creditHours"].sum()
             else:
-                major_avg = 0
+                term_major_avg = 0
 
-            overall_avg = round(termDf["Grade"].mean(), 2) if not termDf.empty else 0
+            overall_avg = round(overall_major_sum / overall_major_credits, 2) if overall_major_credits > 0 else 0
 
             # Add averages to the transcript
-            transcript_txt += f"\nMajor Average = {major_avg:<15} Overall Average = {overall_avg}\n"
+            transcript_txt += f"\nMajor Average = {term_major_avg:<15} Overall Average = {overall_avg}\n"
 
         transcript_txt += f"{'=' * 55}\n"
-        transcript_txt += f"{'******** End of Transcript for Level (' + level + ') ********':^55}\n"
+        transcript_txt += f"{'****** End of Transcript for Level (' + level + ') ******':^55}\n"
         transcript_txt += f"{'=' * 55}\n\n\n\n"
 
     # Print the transcript
@@ -327,9 +331,12 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 {'=' * 55}
 """
 
+    overall_minor_sum = 0
+    overall_minor_credits = 0
+
     # Separate processing for undergraduate and graduate levels
     for level in stdLevel:
-        level_courses = dataFrame[dataFrame["Level"] == level]
+        level_courses = dataFrame[(dataFrame["Level"] == level) & (dataFrame["courseType"] == "Minor")]
         if level_courses.empty:
             continue
 
@@ -348,20 +355,21 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
                     f"{course['creditHours']:<14}{course['Grade']}\n"
                 )
 
-            # Compute averages for minor courses
-            minor_courses = termDf[termDf["courseType"] == "Minor"]
-            if not minor_courses.empty:
-                minor_avg = round(minor_courses["Grade"].sum() / minor_courses["creditHours"].sum(), 2)
+            # Compute averages
+            if not termDf.empty:
+                term_minor_avg = round(termDf["Grade"].sum() / termDf["creditHours"].sum(), 2)
+                overall_minor_sum += termDf["Grade"].sum()
+                overall_minor_credits += termDf["creditHours"].sum()
             else:
-                minor_avg = 0
+                term_minor_avg = 0
 
-            overall_avg = round(termDf["Grade"].mean(), 2) if not termDf.empty else 0
+            overall_avg = round(overall_minor_sum / overall_minor_credits, 2) if overall_minor_credits > 0 else 0
 
             # Add averages to the transcript
-            transcript_txt += f"\nMinor Average = {minor_avg:<15} Overall Average = {overall_avg}\n"
+            transcript_txt += f"\nMinor Average = {term_minor_avg:<15} Overall Average = {overall_avg}\n"
 
         transcript_txt += f"{'=' * 55}\n"
-        transcript_txt += f"{'******** End of Transcript for Level (' + level + ') ********':^55}\n"
+        transcript_txt += f"{'****** End of Transcript for Level (' + level + ') ******':^55}\n"
         transcript_txt += f"{'=' * 55}\n\n\n\n"
 
     # Print the transcript
@@ -373,6 +381,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
     # Return to the menu
     clearOutput(5)
+
 
 def clearOutput(x):
     # Wait for 3 seconds
