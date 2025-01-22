@@ -72,7 +72,7 @@ def startFeature():
 
                 if not df_results.empty:  # If the ID is valid
                     print("\nStudent ID validated. Proceeding to the menu...\n")
-                    #clearOutput(-2)
+                    clearOutput(-2)
                     menuFeature(stdLevel, stdDegree, stdID)
                     break  # Exit the loop once a valid ID is provided
                 else:
@@ -152,84 +152,89 @@ def detailsFeature(stdID, stdLevel, stdDegree):
     clearOutput(0)
 
 def statisticsFeature(stdID, stdDegree, stdLevel):
-    # Reads the CSV file for the student
     try:
+        # Load student data
         dataFrame = pd.read_csv(f"{stdID}.csv")
-    except FileNotFoundError:
-        print(f"Error: File for student ID {stdID} not found.")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        return
+    except pd.errors.EmptyDataError as e:
+        print(f"Error: The file is empty. {e}")
+        return
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
         return
 
     stat_txt = ""  # To store the statistics output text
 
-    # Handling undergraduate statistics
-    if stdLevel == "U":
-        for degree in stdDegree:
-            degDf = dataFrame.loc[dataFrame["Degree"].str.contains(degree)]
-            stat_txt += f"""
-            ======================================================
-            **********   Undergraduate Level   **********
-            ======================================================
-            Overall Average (major and minor) for all terms: {round(degDf.Grade.mean(), 2)}
-            Average (major and minor) of each term: {round(degDf.Grade.sum() / degDf.creditHours.sum(), 2)}
-            """
+    # Process each degree
+    for degree in stdDegree:
+        degreeDf = dataFrame[dataFrame["Degree"].str.contains(degree, na=False)]
+        if degreeDf.empty:
+            print(f"No data found for degree: {degree}")
+            continue
 
-            terms = degDf.Term.unique()
-            for term in terms:
-                average = round(degDf[degDf["Term"] == term]["Grade"].mean(), 2)
-                stat_txt += f'\n\tTerm {term}: {average}'
+        # Prepare the statistics header
+        level_type = "Undergraduate" if stdLevel == "U" else f"Graduate({degree})"
+        stat_txt += f"""
+{'=' * 63}
+******************   {level_type} Level   ******************
+{'=' * 63}
+"""
 
-            repeatedCourses = degDf[degDf.courseName.duplicated()]
-            repeated = (
-                f"Yes, {repeatedCourses['courseName'].iloc[0]}"
-                if not repeatedCourses.empty
+        # Compute overall and term averages
+        try:
+            overall_avg = round(statistics.mean(degreeDf["Grade"]), 2)
+            overall_weighted_avg = round(sum(degreeDf["Grade"] * degreeDf["creditHours"]) / degreeDf["creditHours"].sum(), 2)
+            stat_txt += f"Overall Average (major and minor) for all terms: {overall_avg}\n"
+            stat_txt += f"Overall Weighted Average (major and minor) for all terms: {overall_weighted_avg}\n"
+            stat_txt += f"Average (major and minor) of each term:\n"
+
+            for term in degreeDf["Term"].unique():
+                termDf = degreeDf[degreeDf["Term"] == term]
+                term_avg = round(statistics.mean(termDf["Grade"]), 2)
+                stat_txt += f"\tTerm {term}: {term_avg}\n"
+        except KeyError as e:
+            print(f"Missing column in data: {e}")
+            return
+
+        # Find repeated courses
+        try:
+            repeated_courses = degreeDf[degreeDf["courseName"].duplicated()]
+            repeated_info = (
+                f"Yes, {', '.join(repeated_courses['courseName'].unique())}"
+                if not repeated_courses.empty
                 else "No"
             )
+        except KeyError as e:
+            print(f"Missing column in data: {e}")
+            return
 
-            maximumGrade = degDf[degDf["Grade"] == degDf["Grade"].max()]
-            minimumGrade = degDf[degDf["Grade"] == degDf["Grade"].min()]
+        # Find maximum and minimum grades
+        try:
+            max_grade_row = degreeDf.loc[degreeDf["Grade"].idxmax()]
+            min_grade_row = degreeDf.loc[degreeDf["Grade"].idxmin()]
+
             stat_txt += f"""
-            Maximum grade(s) and in which term(s): Term - {maximumGrade["Term"].iloc[0]}, Grade - {maximumGrade["Grade"].iloc[0]} 
-            Minimum grade(s) and in which term(s): Term - {minimumGrade["Term"].iloc[0]}, Grade - {minimumGrade["Grade"].iloc[0]}  
-            Do you have any repeated course(s)? {repeated}
-            """
+Maximum grade(s) and in which term(s): Term {max_grade_row['Term']}, Grade {max_grade_row['Grade']}
+Minimum grade(s) and in which term(s): Term {min_grade_row['Term']}, Grade {min_grade_row['Grade']}
+Do you have any repeated course(s)?: {repeated_info}
+"""
+        except KeyError as e:
+            print(f"Missing column in data: {e}")
+            return
 
-    # Handling graduate or both levels
-    elif stdLevel == "G" or stdLevel == ["U", "G"]:
-        for degree in stdDegree:
-            degDf = dataFrame.loc[dataFrame["Degree"].str.contains(degree)]
-            stat_txt += f"""
-            ======================================================
-            **********   Graduate ({degree}) Level   **********
-            ======================================================
-            Overall Average (major and minor) for all terms: {round(degDf.Grade.mean(), 2)}
-            Average (major and minor) of each term: {round(degDf.Grade.sum() / degDf.creditHours.sum(), 2)}
-            """
-
-            terms = degDf.Term.unique()
-            for term in terms:
-                average = round(degDf[degDf["Term"] == term]["Grade"].mean(), 2)
-                stat_txt += f'\n\tTerm {term}: {average}'
-
-            repeatedCourses = degDf[degDf.courseName.duplicated()]
-            repeated = (
-                f"Yes, {repeatedCourses['courseName'].iloc[0]}"
-                if not repeatedCourses.empty
-                else "No"
-            )
-
-            maximumGrade = degDf[degDf["Grade"] == degDf["Grade"].max()]
-            minimumGrade = degDf[degDf["Grade"] == degDf["Grade"].min()]
-            stat_txt += f"""
-            Maximum grade(s) and in which term(s): Term - {maximumGrade["Term"].iloc[0]}, Grade - {maximumGrade["Grade"].iloc[0]} 
-            Minimum grade(s) and in which term(s): Term - {minimumGrade["Term"].iloc[0]}, Grade - {minimumGrade["Grade"].iloc[0]}  
-            Do you have any repeated course(s)? {repeated}
-            """
-
+    # Print the statistics
     print(stat_txt)
 
-    with open(f"{stdID}statistics.txt", "w") as f:
-        f.write(stat_txt)
+    # Save the statistics to a file
+    try:
+        with open(f"{stdID}Statistics.txt", "w") as f:
+            f.write(stat_txt)
+    except Exception as e:
+        print(f"Error writing to file: {e}")
 
+    # Return to the menu
     clearOutput(5)
 
 def majorTranscriptFeature(stdID, stdDegree, stdLevel):
@@ -296,7 +301,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
             transcript_txt += f"\nMajor Average = {term_major_avg:<15} Overall Average = {overall_avg}\n"
 
         transcript_txt += f"{'=' * 55}\n"
-        transcript_txt += f"{'****** End of Transcript for Level (' + level + ') ******':^55}\n"
+        transcript_txt += f"{'**** End of Transcript for Level (' + level + ') ****':^55}\n"
         transcript_txt += f"{'=' * 55}\n\n\n\n"
 
     # Print the transcript
@@ -373,7 +378,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
             transcript_txt += f"\nMinor Average = {term_minor_avg:<15} Overall Average = {overall_avg}\n"
 
         transcript_txt += f"{'=' * 55}\n"
-        transcript_txt += f"{'****** End of Transcript for Level (' + level + ') ******':^55}\n"
+        transcript_txt += f"{'**** End of Transcript for Level (' + level + ') ****':^55}\n"
         transcript_txt += f"{'=' * 55}\n\n\n\n"
 
     # Print the transcript
@@ -478,7 +483,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
         # Add overall averages for this level after processing all terms
         transcript_txt += f"\n{'=' * 55}\n"
-        transcript_txt += f"{'****** End of Transcript for Level (' + level + ') ******':^55}\n"
+        transcript_txt += f"{'**** End of Transcript for Level (' + level + ') ****':^55}\n"
         transcript_txt += f"{'=' * 55}\n"
 
     # Print the transcript
@@ -499,7 +504,7 @@ def newStudentFeature():
     startFeature()
 
 def clearOutput(x):
-    # Wait for 3 seconds
+    # Wait for 5 seconds
     time.sleep(5+x)
     # Clear output
     def clear(): return os.system('cls')
