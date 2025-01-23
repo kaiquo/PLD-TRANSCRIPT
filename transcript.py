@@ -509,6 +509,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
     # Return to the menu
     clearOutput(5)
+    
 def previousRequestsFeature(stdID, stdDegree, stdLevel):
     try:
         with open(f"std{stdID}PreviousRequests.txt", "r") as f:
@@ -517,9 +518,8 @@ def previousRequestsFeature(stdID, stdDegree, stdLevel):
     except FileNotFoundError:
         print(f"No previous requests found for student ID {stdID}.")
         
-    time.sleep(5)
     clearOutput(5)
-    menuFeature(stdLevel, stdDegree, stdID)
+    
 def newStudentFeature():
     print("Preparing for a new student...")
     clearOutput(-2)
