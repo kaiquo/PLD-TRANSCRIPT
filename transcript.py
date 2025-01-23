@@ -4,11 +4,12 @@
 # Monreal, Xancho Bryan G.  2024-01561-MN-0, 25%
 # Antiquera, Simeon III B.  2024-05025-MN-0, 25%
 
-import pandas as pd
 import sys
-import time
 import os
 import statistics
+import pandas as pd
+from datetime import time, datetime, date
+
 
 def startFeature():
     print("\033[1mWelcome to the PUP Student Transcript Generation System!\033[0;0m")
@@ -24,8 +25,8 @@ def startFeature():
             print("\033[1mInvalid student level. Please try again.\033[0;0m")
             continue
         if stdLevel == "B":
-            stdLevel = ["U","G"]
-            if stdLevel == ["U","G"]:
+            stdLevel = ["U", "G"]
+            if stdLevel == ["U", "G"]:
                 print("\nSelect Degree Level: ")
                 print("M: Master")
                 print("D: Doctorate")
@@ -36,11 +37,11 @@ def startFeature():
                     print("\033[1mInvalid student level. Please try again.\033[0;0m")
                     continue
                 if stdDegree == "B0":
-                    stdDegree = ["B","M","D"]
+                    stdDegree = ["B", "M", "D"]
                 elif stdDegree == "M":
-                    stdDegree = ["B","M"]
+                    stdDegree = ["B", "M"]
                 elif stdDegree == "D":
-                    stdDegree = ["B","D"]
+                    stdDegree = ["B", "D"]
         elif stdLevel == "U":
             stdLevel = "U"
             stdDegree = "B"
@@ -55,7 +56,7 @@ def startFeature():
                     print("\033[1mInvalid student level. Please try again.\033[0;0m")
                     continue
                 if stdDegree == "B0":
-                    stdDegree = ["M","D"]
+                    stdDegree = ["M", "D"]
                 elif stdDegree == "M":
                     stdDegree = "M"
                 elif stdDegree == "D":
@@ -87,6 +88,7 @@ def startFeature():
             except ValueError:
                 print("\nInvalid input. Please enter a valid numeric Student ID.")
 
+
 def menuFeature(stdLevel, stdDegree, stdID):
     requestCounter = 0
     while True:
@@ -105,21 +107,27 @@ def menuFeature(stdLevel, stdDegree, stdID):
 
         if choice == "1":
             requestCounter += 1
+            featureRequests("Student Details", stdID)
             detailsFeature(stdID, stdLevel, stdDegree)
         elif choice == "2":
             requestCounter += 1
+            featureRequests("Statistics", stdID)
             statisticsFeature(stdID, stdDegree, stdLevel)  # Ensure parameters are passed correctly
         elif choice == "3":
             requestCounter += 1
+            featureRequests("Major Transcript", stdID)
             majorTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "4":
             requestCounter += 1
+            featureRequests("Minor Transcript", stdID)
             minorTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "5":
             requestCounter += 1
+            featureRequests("Full Transcript", stdID)
             fullTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "6":
             requestCounter += 1
+            featureRequests("Previous Request ", stdID)
             previousRequestsFeature(stdID, stdDegree, stdLevel)
         elif choice == "7":
             requestCounter = 0
@@ -130,6 +138,7 @@ def menuFeature(stdLevel, stdDegree, stdID):
             break  # Exit the menu loop and end the program
         else:
             print("Invalid input. Please try again.")
+
 
 def detailsFeature(stdID, stdLevel, stdDegree):
     # Reads the csv file and is then entered as the value of the variable dataFrame
@@ -165,6 +174,7 @@ def detailsFeature(stdID, stdLevel, stdDegree):
     # Clears the screen followed by a short sleep and then proceeds to the menu feature again
     clearOutput(0)
 
+
 def statisticsFeature(stdID, stdDegree, stdLevel):
     try:
         # Load student data
@@ -192,14 +202,15 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
         level_type = "Undergraduate" if stdLevel == "U" else f"Graduate({degree})"
         stat_txt += f"""
 {'=' * 63}
- ******************   {level_type} Level   ******************
+  ******************   {level_type} Level   ******************
 {'=' * 63}
 """
 
         # Compute overall and term averages
         try:
             overall_avg = round(statistics.mean(degreeDf["Grade"]), 2)
-            overall_weighted_avg = round(sum(degreeDf["Grade"] * degreeDf["creditHours"]) / degreeDf["creditHours"].sum(), 2)
+            overall_weighted_avg = round(
+                sum(degreeDf["Grade"] * degreeDf["creditHours"]) / degreeDf["creditHours"].sum(), 2)
             stat_txt += f"Overall Average (major and minor) for all terms: {overall_avg}\n"
             stat_txt += f"Overall Weighted Average (major and minor) for all terms: {overall_weighted_avg}\n"
             stat_txt += f"Average (major and minor) of each term:\n"
@@ -251,6 +262,7 @@ Do you have any repeated course(s)?: {repeated_info}
     # Return to the menu
     clearOutput(5)
 
+
 def majorTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
         # Load student data
@@ -301,7 +313,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
             # Compute the term's major average
             if not termDf.empty:
-                term_major_avg = round(statistics.mean(termDf["Grade"]),2)
+                term_major_avg = round(statistics.mean(termDf["Grade"]), 2)
                 term_averages.append(term_major_avg)
                 overall_major_sum += sum(termDf["Grade"])
                 total_terms += 1
@@ -327,6 +339,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
     # Return to the menu
     clearOutput(5)
+
 
 def minorTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
@@ -404,6 +417,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
     # Return to the menu
     clearOutput(5)
+
 
 def fullTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
@@ -509,34 +523,48 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
     # Return to the menu
     clearOutput(5)
-    
+
+
 def previousRequestsFeature(stdID, stdDegree, stdLevel):
     try:
-        with open(f"std{stdID}PreviousRequests.txt", "r") as f:
+        with open(f"{stdID}PreviousRequests.txt", "r") as f:
             text = f.read()
             print(text)
     except FileNotFoundError:
         print(f"No previous requests found for student ID {stdID}.")
-        
+
     clearOutput(5)
-    
+
+
 def newStudentFeature():
     print("Preparing for a new student...")
     clearOutput(-2)
     print("Redirecting you to the main menu...")
     clearOutput(-2)
 
+
 def terminateFeature(requestCounter):
     print("Terminating the program. . .")
     clearOutput(-2)
-    print(f"{'*' * 60}\nNumber of request: {requestCounter}\nThank you for using the Student Transcript Generation System\n{'*' * 60}")
+    print(
+        f"{'*' * 60}\nNumber of request: {requestCounter}\nThank you for using the Student Transcript Generation System\n{'*' * 60}")
     sys.exit()
+
+def featureRequests(feature:str, stdID:int):
+    with open(f"{stdID}PreviousRequests.txt", "a") as f:
+        date_now = date.today().strftime("%d/%m/%Y")
+        time_now = datetime.now().strftime("%H:%M %p")
+        text =f"\n{feature}\t\t{date_now}\t\t{time_now}\t"
+        f.write(text)
+        f.close()
+
 
 def clearOutput(x):
     # Wait for 3 seconds
-    time.sleep(5+x)
+    time.sleep(5 + x)
     # Clear output
     def clear(): return os.system('cls')
     clear()
+
 
 startFeature()
