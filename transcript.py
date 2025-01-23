@@ -518,7 +518,7 @@ def previousRequestsFeature(stdID, stdDegree, stdLevel):
         print(f"No previous requests found for student ID {stdID}.")
         
     time.sleep(5)
-    clear_output(wait=True)
+    clearOutput(5)
     menuFeature(stdLevel, stdDegree, stdID)
 def newStudentFeature():
     print("Preparing for a new student...")
