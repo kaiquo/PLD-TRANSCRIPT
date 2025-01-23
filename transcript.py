@@ -1,9 +1,3 @@
-# This work is done by group __:
-# Llegue, Tim Kaiser L.     2024-04875-MN-0, 25%
-# Alindogan, Hanniel II D.  2024-02554-MN-0, 25%
-# Monreal, Xancho Bryan G.  2024-01561-MN-0, 25%
-# 
-
 import pandas as pd
 import sys
 import time
@@ -88,6 +82,7 @@ def startFeature():
                 print("\nInvalid input. Please enter a valid numeric Student ID.")
 
 def menuFeature(stdLevel, stdDegree, stdID):
+    requestCounter = 0
     while True:
         print("       \033[1mStudent Transcript Generation System Menu\033[0;0m")
         print("=" * 55)
@@ -103,22 +98,29 @@ def menuFeature(stdLevel, stdDegree, stdID):
         choice = input("\033[1mEnter your feature: \033[0;0m")
 
         if choice == "1":
+            requestCounter += 1
             detailsFeature(stdID, stdLevel, stdDegree)
         elif choice == "2":
+            requestCounter += 1
             statisticsFeature(stdID, stdDegree, stdLevel)  # Ensure parameters are passed correctly
         elif choice == "3":
+            requestCounter += 1
             majorTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "4":
+            requestCounter += 1
             minorTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "5":
+            requestCounter += 1
             fullTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "6":
+            requestCounter += 1
             previousRequestsFeature()
         elif choice == "7":
+            requestCounter = 0
             newStudentFeature()
             break  # Exit the menu loop for a new student
         elif choice == "8":
-            terminateFeature()
+            terminateFeature(requestCounter)
             break  # Exit the menu loop and end the program
         else:
             print("Invalid input. Please try again.")
@@ -184,7 +186,7 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
         level_type = "Undergraduate" if stdLevel == "U" else f"Graduate({degree})"
         stat_txt += f"""
 {'=' * 63}
-******************   {level_type} Level   ******************
+ ******************   {level_type} Level   ******************
 {'=' * 63}
 """
 
@@ -507,10 +509,15 @@ def newStudentFeature():
     clearOutput(-2)
     print("Redirecting you to the main menu...")
     clearOutput(-2)
-    startFeature()
+
+def terminateFeature(requestCounter):
+    print("Terminating the program. . .")
+    clearOutput(-2)
+    print(f"{'*' * 60}\nNumber of request: {requestCounter}\nThank you for using the Student Transcript Generation System\n{'*' * 60}")
+    sys.exit()
 
 def clearOutput(x):
-    # Wait for 5 seconds
+    # Wait for 3 seconds
     time.sleep(5+x)
     # Clear output
     def clear(): return os.system('cls')
