@@ -1,3 +1,9 @@
+# This work is done by group __:
+# Llegue, Tim Kaiser L.     2024-04875-MN-0, 25%
+# Alindogan, Hanniel II D.  2024-02554-MN-0, 25%
+# Monreal, Xancho Bryan G.  2024-01561-MN-0, 25%
+# Antiquera, Simeon III B.  2024-05025-MN-0, 25%
+
 import pandas as pd
 import sys
 import time
