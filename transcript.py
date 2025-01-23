@@ -120,7 +120,7 @@ def menuFeature(stdLevel, stdDegree, stdID):
             fullTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "6":
             requestCounter += 1
-            previousRequestsFeature()
+            previousRequestsFeature(stdID, stdDegree, stdLevel)
         elif choice == "7":
             requestCounter = 0
             newStudentFeature()
@@ -509,7 +509,17 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
     # Return to the menu
     clearOutput(5)
-
+def previousRequestsFeature(stdID, stdDegree, stdLevel):
+    try:
+        with open(f"std{stdID}PreviousRequests.txt", "r") as f:
+            text = f.read()
+            print(text)
+    except FileNotFoundError:
+        print(f"No previous requests found for student ID {stdID}.")
+        
+    time.sleep(5)
+    clear_output(wait=True)
+    menuFeature(stdLevel, stdDegree, stdID)
 def newStudentFeature():
     print("Preparing for a new student...")
     clearOutput(-2)
