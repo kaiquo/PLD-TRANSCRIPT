@@ -8,8 +8,8 @@ import sys
 import os
 import statistics
 import pandas as pd
-from datetime import time, datetime, date
-
+import time
+from datetime import datetime, date
 
 def startFeature():
     print("\033[1mWelcome to the PUP Student Transcript Generation System!\033[0;0m")
@@ -79,7 +79,7 @@ def startFeature():
 
                 if not df_results.empty:  # If the ID is valid
                     print("\nStudent ID validated. Proceeding to the menu...\n")
-                    clearOutput(-2)
+                    clearOutput(3)
                     menuFeature(stdLevel, stdDegree, stdID)
                     break  # Exit the loop once a valid ID is provided
                 else:
@@ -172,7 +172,7 @@ def detailsFeature(stdID, stdLevel, stdDegree):
         f.close()
 
     # Clears the screen followed by a short sleep and then proceeds to the menu feature again
-    clearOutput(0)
+    clearOutput(5)
 
 
 def statisticsFeature(stdID, stdDegree, stdLevel):
@@ -260,7 +260,7 @@ Do you have any repeated course(s)?: {repeated_info}
         print(f"Error writing to file: {e}")
 
     # Return to the menu
-    clearOutput(5)
+    clearOutput(10)
 
 
 def majorTranscriptFeature(stdID, stdDegree, stdLevel):
@@ -338,7 +338,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
         f.write(transcript_txt)
 
     # Return to the menu
-    clearOutput(5)
+    clearOutput(10)
 
 
 def minorTranscriptFeature(stdID, stdDegree, stdLevel):
@@ -416,7 +416,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
         f.write(transcript_txt)
 
     # Return to the menu
-    clearOutput(5)
+    clearOutput(10)
 
 
 def fullTranscriptFeature(stdID, stdDegree, stdLevel):
@@ -520,48 +520,61 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
     # Save the transcript to a file
     with open(f"{stdID}FullTranscript.txt", "w") as f:
         f.write(transcript_txt)
-
     # Return to the menu
-    clearOutput(5)
+    clearOutput(10)
 
 
 def previousRequestsFeature(stdID, stdDegree, stdLevel):
     try:
         with open(f"{stdID}PreviousRequests.txt", "r") as f:
             text = f.read()
+            print()
             print(text)
     except FileNotFoundError:
         print(f"No previous requests found for student ID {stdID}.")
-
     clearOutput(5)
 
 
 def newStudentFeature():
     print("Preparing for a new student...")
-    clearOutput(-2)
+    clearOutput(3)
     print("Redirecting you to the main menu...")
-    clearOutput(-2)
+    clearOutput(3)
 
 
 def terminateFeature(requestCounter):
-    print("Terminating the program. . .")
-    clearOutput(-2)
+    print("Terminating the program...")
+    clearOutput(3)
     print(
-        f"{'*' * 60}\nNumber of request: {requestCounter}\nThank you for using the Student Transcript Generation System\n{'*' * 60}")
+        f"{'=' * 60}\nNumber of request: {requestCounter}\nThank you for using the Student Transcript Generation System\n{'=' * 60}")
     sys.exit()
 
-def featureRequests(feature:str, stdID:int):
-    with open(f"{stdID}PreviousRequests.txt", "a") as f:
+
+def featureRequests(feature: str, stdID: int):
+    # Open the file in append mode and check if the header needs to be written
+    with open(f"{stdID}PreviousRequests.txt", "a+") as f:
+        f.seek(0)  # Move the cursor to the start of the file to check its content
+        content = f.read()
+
+        # Write header if the file is empty
+        if not content.strip():
+            header = f"{'Request':<20}{'Date':<15}{'Time':<10}\n"
+            separator = "=" * 45 + "\n"
+            f.write(header)
+            f.write(separator)
+
+        # Format the current date and time
         date_now = date.today().strftime("%d/%m/%Y")
-        time_now = datetime.now().strftime("%H:%M %p")
-        text =f"\n{feature}\t\t{date_now}\t\t{time_now}\t"
+        time_now = datetime.now().strftime("%I:%M %p")  # 12-hour format with AM/PM
+
+        # Format the request line with proper column widths
+        text = f"{feature:<20}{date_now:<15}{time_now:<10}\n"
         f.write(text)
-        f.close()
 
 
 def clearOutput(x):
     # Wait for 3 seconds
-    time.sleep(5 + x)
+    time.sleep(x)
     # Clear output
     def clear(): return os.system('cls')
     clear()
