@@ -12,45 +12,63 @@ import time
 from datetime import datetime, date
 
 def startFeature():
-    print("\033[1mWelcome to the PUP Student Transcript Generation System!\033[0;0m")
-    while True:
+    print("\033[1mWelcome to the PUP Student Transcript Generation System!\033[0;0m") # Display the welcome message
+    
+    while True: 
+        # Display menu for selecting student level 
         print("=" * 55)
         print("Select Student Level:")
         print("U: Undergraduate")
         print("G: Graduate")
         print("B: Both Undergraduate and Graduate")
         print("=" * 55)
+        
+        # Input for student level selection
         stdLevel = input("Select student level (Enter to start over): ").upper().strip()
+        
+        # Restart the feature if input is empty
         if stdLevel == "":
             clearOutput(0)
             startFeature()
+        
+        # Validate student level input
         if stdLevel not in ["U", "G", "B"]:
             print("\033[1mInvalid student level. Please try again.\033[0;0m")
             continue
+        
+        # If "B" is selected, prompt for graduate degree levels
         if stdLevel == "B":
-            stdLevel = ["U", "G"]
+            stdLevel = ["U", "G"]          
             if stdLevel == ["U", "G"]:
                 print("\nSelect Degree Level: ")
                 print("M: Master")
                 print("D: Doctorate")
                 print("B0: Both Master and Doctorate")
                 print("=" * 55)
+                
+                # Input for degree level selection 
                 stdDegree = input("For Graduate level, select the degree (Enter to start over): ").upper().strip()
-                if stdDegree == "":
+                if stdDegree == "":# Restart the feature if input is empty
                     clearOutput(0)
                     startFeature()
-                if stdDegree not in ["M", "D", "B0"]:
+                    
+                if stdDegree not in ["M", "D", "B0"]:  # Validate degree level input
                     print("\033[1mInvalid student level. Please try again.\033[0;0m")
                     continue
-                if stdDegree == "B0":
+                    
+                if stdDegree == "B0": # Assign degree levels based on user input
                     stdDegree = ["B", "M", "D"]
                 elif stdDegree == "M":
                     stdDegree = ["B", "M"]
                 elif stdDegree == "D":
                     stdDegree = ["B", "D"]
+        
+        # If "U" is selected, assign undergraduate level and default degree
         elif stdLevel == "U":
             stdLevel = ["U"]
             stdDegree = ["BS1"]
+        
+        # If "G" is selected, prompt for graduate degree levels
         elif stdLevel == "G":
             stdLevel = ["G"]
             if stdLevel == ["G"]:
@@ -59,13 +77,18 @@ def startFeature():
                 print("D: Doctorate")
                 print("B0: Both Master and Doctorate")
                 print("=" * 55)
+                
+                # Input for degree level selection
                 stdDegree = input("For Graduate level, select the degree (Enter to start over): ").upper().strip()
-                if stdDegree == "":
+                 
+                if stdDegree == "": # Restart the feature if input is empty
                     clearOutput(0)
                     startFeature()
-                if stdDegree not in ["M", "D", "B0"]:
+                
+                if stdDegree not in ["M", "D", "B0"]: # Validate degree level input
                     print("\033[1mInvalid student level. Please try again.\033[0;0m")
-                    continue
+                    continue  
+                # Assign degree levels based on user input
                 if stdDegree == "B0":
                     stdDegree = ["M", "D"]
                 elif stdDegree == "M":
@@ -73,39 +96,37 @@ def startFeature():
                 elif stdDegree == "D":
                     stdDegree = ["D"]
 
-                # Load the data from the CSV file
+        # Attempt to load student data from the CSV file
         try:
             dataFrame = pd.read_csv("studentDetails.csv")
         except FileNotFoundError:
             print("Error: 'studentDetails.csv' file not found. Please ensure it is in the same directory.")
             sys.exit(1)
 
+        # Loop for validating student ID
         while True:
-            try:
-                # Ask the user for their student ID
+            try:         
                 user_input = input("\nEnter Student ID (Enter to start over): ")
-                if user_input == "":
+                if user_input == "": # Restart the feature if input is empty
                     clearOutput(0)
                     startFeature()
-
                 stdID = int(user_input)
-                # Check whether the student's ID exists in the database
-                df_results = dataFrame[dataFrame["stdID"] == stdID]
+                df_results = dataFrame[dataFrame["stdID"] == stdID] # Check if the student ID exists in the database
 
-                if not df_results.empty:  # If the ID is valid
+                if not df_results.empty:  # Valid student ID
                     print("\nStudent ID validated. Proceeding to the menu...\n")
                     clearOutput(3)
                     menuFeature(stdLevel, stdDegree, stdID)
-                    break  # Exit the loop once a valid ID is provided
+                    break  # Exit loop once ID is validated
                 else:
-                    # If the ID is invalid
-                    print("\nInvalid ID. Please try again.")
+                    print("\nInvalid ID. Please try again.")  # No ID found
             except ValueError:
-                print("\nInvalid input. Please enter a valid numeric Student ID.")
+                print("\nInvalid input. Please enter a valid numeric Student ID.")  # Invalid input message
 
 
 def menuFeature(stdLevel, stdDegree, stdID):
-    requestCounter = 0
+    requestCounter = 0   # Initialize a counter to track the number of requests made during the session
+
     while True:
         print("       \033[1mStudent Transcript Generation System Menu\033[0;0m")
         print("=" * 55)
@@ -118,61 +139,62 @@ def menuFeature(stdLevel, stdDegree, stdID):
         print("7. Select Another student")
         print("8. Terminate the system")
         print("=" * 55)
-        choice = input("\033[1mEnter your feature: \033[0;0m")
 
+        choice = input("\033[1mEnter your feature: \033[0;0m") # Get the user's menu choice
+
+        # repititiom structure to display features 
         if choice == "1":
-            requestCounter += 1
-            featureRequests("Student Details", stdID)
-            detailsFeature(stdID, stdLevel, stdDegree)
+            requestCounter += 1 # Increment request counter
+            featureRequests("Student Details", stdID)  
+            detailsFeature(stdID, stdLevel, stdDegree)  
         elif choice == "2":
-            requestCounter += 1
+            requestCounter += 1 # Increment request counter
             featureRequests("Statistics", stdID)
-            statisticsFeature(stdID, stdDegree, stdLevel)  # Ensure parameters are passed correctly
+            statisticsFeature(stdID, stdDegree, stdLevel)  
         elif choice == "3":
-            requestCounter += 1
+            requestCounter += 1 # Increment request counter
             featureRequests("Major Transcript", stdID)
             majorTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "4":
-            requestCounter += 1
+            requestCounter += 1 # Increment request counter
             featureRequests("Minor Transcript", stdID)
             minorTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "5":
-            requestCounter += 1
+            requestCounter += 1 # Increment request counter
             featureRequests("Full Transcript", stdID)
             fullTranscriptFeature(stdID, stdDegree, stdLevel)
         elif choice == "6":
-            requestCounter += 1
-            featureRequests("Previous Request ", stdID)
+            requestCounter += 1 # Increment request counter
+            featureRequests("Previous Request", stdID)
             previousRequestsFeature(stdID, stdDegree, stdLevel)
         elif choice == "7":
-            requestCounter += 1
-            newStudentFeature()
+            requestCounter += 1 # Increment request counter
+            newStudentFeature()  # Functionality to select a new student
             break  # Exit the menu loop for a new student
+
+        # Option 8: Terminate the system
         elif choice == "8":
-            terminateFeature(requestCounter)
+            terminateFeature(requestCounter)  # Handle termination logic
             break  # Exit the menu loop and end the program
         else:
             print("Invalid input. Please try again.")
 
 
 def detailsFeature(stdID, stdLevel, stdDegree):
-    # Reads the csv file and is then entered as the value of the variable dataFrame
-    dataFrame = pd.read_csv("studentDetails.csv")
-    stdDetail = dataFrame[dataFrame["stdID"] == stdID]
-
-    # Initializes the txt file
+    dataFrame = pd.read_csv("studentDetails.csv") # Reads the student details from the CSV file into a DataFrame
+    stdDetail = dataFrame[dataFrame["stdID"] == stdID]# Filters the DataFrame to find the specific student by their ID
     stdDetail_txt = ""
-
-    # Initializes term text to be displayed
     term = ""
-    rowLen = len(stdDegree)
+    rowLen = len(stdDegree) # Number of degree levels associated with the student
 
+    # Concatenate terms based on the number of degree levels
     for i in range(rowLen):
         if i == 0:
-            term += str(stdDetail.Terms.iloc[0])
-        if i != 0:
-            term += ", " + str(stdDetail.Terms.iloc[i])
-    # Inputs information to the txt file
+            term += str(stdDetail.Terms.iloc[0])  # Add the first term
+        else:
+            term += ", " + str(stdDetail.Terms.iloc[i])  # Add subsequent terms with a comma separator
+
+    # Construct the student's detail string
     stdDetail_txt += (f"Name: {stdDetail.Name.iloc[0]}\n"
                       f"stdID: {stdID}\n"
                       f"Level(s): {', '.join(stdLevel)}\n"
@@ -182,11 +204,12 @@ def detailsFeature(stdID, stdLevel, stdDegree):
 
     print("\n" + stdDetail_txt)
 
+    # Write the student details to a text file named after the student's ID
     with open(f"{stdID}details.txt", "w") as f:
-        f.write(stdDetail_txt)
+        f.write(stdDetail_txt)  # Save the details
         f.close()
 
-    # Clears the screen followed by a short sleep and then proceeds to the menu feature again
+    # Clears the screen, waits for a short duration, and returns to the menu feature
     clearOutput(5)
 
 
