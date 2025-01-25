@@ -145,7 +145,7 @@ def menuFeature(stdLevel, stdDegree, stdID):
             featureRequests("Previous Request ", stdID)
             previousRequestsFeature(stdID, stdDegree, stdLevel)
         elif choice == "7":
-            requestCounter = 1
+            requestCounter += 1
             newStudentFeature()
             break  # Exit the menu loop for a new student
         elif choice == "8":
