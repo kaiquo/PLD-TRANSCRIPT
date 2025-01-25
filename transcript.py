@@ -20,7 +20,10 @@ def startFeature():
         print("G: Graduate")
         print("B: Both Undergraduate and Graduate")
         print("=" * 55)
-        stdLevel = input("Select student level: ").upper().strip()
+        stdLevel = input("Select student level (Enter to start over): ").upper().strip()
+        if stdLevel == "":
+            clearOutput(0)
+            startFeature()
         if stdLevel not in ["U", "G", "B"]:
             print("\033[1mInvalid student level. Please try again.\033[0;0m")
             continue
@@ -32,7 +35,10 @@ def startFeature():
                 print("D: Doctorate")
                 print("B0: Both Master and Doctorate")
                 print("=" * 55)
-                stdDegree = input("For Graduate level, select the degree: ").upper().strip()
+                stdDegree = input("For Graduate level, select the degree (Enter to start over): ").upper().strip()
+                if stdDegree == "":
+                    clearOutput(0)
+                    startFeature()
                 if stdDegree not in ["M", "D", "B0"]:
                     print("\033[1mInvalid student level. Please try again.\033[0;0m")
                     continue
@@ -43,24 +49,29 @@ def startFeature():
                 elif stdDegree == "D":
                     stdDegree = ["B", "D"]
         elif stdLevel == "U":
-            stdLevel = "U"
-            stdDegree = "B"
+            stdLevel = ["U"]
+            stdDegree = ["BS1"]
         elif stdLevel == "G":
-            stdLevel = "G"
-            if stdLevel == "G":
+            stdLevel = ["G"]
+            if stdLevel == ["G"]:
+                print("\nSelect Degree Level: ")
                 print("M: Master")
                 print("D: Doctorate")
                 print("B0: Both Master and Doctorate")
-                stdDegree = input("For Graduate level, select the degree: ").upper()
+                print("=" * 55)
+                stdDegree = input("For Graduate level, select the degree (Enter to start over): ").upper().strip()
+                if stdDegree == "":
+                    clearOutput(0)
+                    startFeature()
                 if stdDegree not in ["M", "D", "B0"]:
                     print("\033[1mInvalid student level. Please try again.\033[0;0m")
                     continue
                 if stdDegree == "B0":
                     stdDegree = ["M", "D"]
                 elif stdDegree == "M":
-                    stdDegree = "M"
+                    stdDegree = ["M"]
                 elif stdDegree == "D":
-                    stdDegree = "D"
+                    stdDegree = ["D"]
 
                 # Load the data from the CSV file
         try:
@@ -72,8 +83,12 @@ def startFeature():
         while True:
             try:
                 # Ask the user for their student ID
-                stdID = int(input("\nEnter Student ID: "))
+                user_input = input("\nEnter Student ID (Enter to start over): ")
+                if user_input == "":
+                    clearOutput(0)
+                    startFeature()
 
+                stdID = int(user_input)
                 # Check whether the student's ID exists in the database
                 df_results = dataFrame[dataFrame["stdID"] == stdID]
 
@@ -130,7 +145,7 @@ def menuFeature(stdLevel, stdDegree, stdID):
             featureRequests("Previous Request ", stdID)
             previousRequestsFeature(stdID, stdDegree, stdLevel)
         elif choice == "7":
-            requestCounter = 0
+            requestCounter = 1
             newStudentFeature()
             break  # Exit the menu loop for a new student
         elif choice == "8":
