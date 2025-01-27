@@ -473,20 +473,22 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
 def fullTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
-        # Load student data
-        dataFrame = pd.read_csv(f"{stdID}.csv")
-        studentDetails = pd.read_csv("studentDetails.csv")
+        # Load student data from CSV files
+        dataFrame = pd.read_csv(f"{stdID}.csv")  
+        studentDetails = pd.read_csv("studentDetails.csv")  # This file contains general student info
     except FileNotFoundError as e:
+        # If a file is missing, handle the exception by printing an error message
         print(f"Error: {e}")
         return
 
-    # Filter student details
+    # Filter student details using the student ID to get the specific student's information
     student = studentDetails[studentDetails["stdID"] == stdID]
     if student.empty:
+        # If no student information is found for the given ID, print a message and exit
         print(f"No details found for student ID: {stdID}")
         return
 
-    # Prepare the transcript header
+    # Prepare the transcript header, using data from the studentDetails dataframe
     transcript_txt = f"""
 Name: {student['Name'].iloc[0]:<26} stdID: {stdID:<15}
 College: {student['College'].iloc[0]:<23} Department: {student['Department'].iloc[0]:<15}
@@ -494,6 +496,7 @@ Major: {student['Major'].iloc[0]:<25} Minor: {student['Minor'].iloc[0]:<15}
 Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 """
 
+    # Initialize variables for computing overall statistics
     overall_major_sum = 0
     overall_minor_sum = 0
     overall_total_grades = 0
@@ -502,15 +505,18 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
     minor_term_averages = []
     overall_term_averages = []
 
+    # Loop through each academic level (e.g., Undergraduate, Graduate)
     for level in stdLevel:
+        # Add a header for the current academic level in the transcript
         transcript_txt += f"\n{'=' * 55}\n{' Full Transcript for Level ' + level:^55}\n{'=' * 55}\n"
 
-        # Process both major and minor courses for the level
+        # Filter the courses based on the current level
         level_courses = dataFrame[dataFrame["Level"] == level]
         if level_courses.empty:
+            # Skip the level if no courses are found for it
             continue
 
-        # Process each term for the level
+        # Process each term (e.g., Fall, Spring) for the current level
         for term in level_courses.Term.unique():
             termDf = level_courses[level_courses["Term"] == term]
             transcript_txt += f"{'=' * 55}\n"
@@ -519,20 +525,22 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
             transcript_txt += f"Course ID   Course Name            Credit Hours   Grade\n"
             transcript_txt += f"{'-' * 55}\n"
 
-            term_grades = []  # List to store all grades for the term
+            term_grades = []  # List to store grades for the current term
 
+            # Loop through each course in the current term
             for _, course in termDf.iterrows():
+                # Add each course's details to the transcript
                 transcript_txt += (
                     f"{course['courseID']:<12}{course['courseName']:<23}"
                     f"{course['creditHours']:<16}{course['Grade']:<8}\n"
                 )
-                term_grades.append(course['Grade'])  # Add grade to term_grades list
+                term_grades.append(course['Grade'])  # Store the grade for this course
 
-            # Calculate term averages for major and minor
+            # Separate major and minor courses for this term
             major_courses = termDf[termDf["courseType"] == "Major"]
             minor_courses = termDf[termDf["courseType"] == "Minor"]
 
-            # Major average for this term
+            # Compute the average grade for major courses this term
             if not major_courses.empty:
                 term_major_avg = round(statistics.mean(major_courses["Grade"]), 2)
                 major_term_averages.append(term_major_avg)
@@ -540,7 +548,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
             else:
                 term_major_avg = 0
 
-            # Minor average for this term
+            # Compute the average grade for minor courses this term
             if not minor_courses.empty:
                 term_minor_avg = round(statistics.mean(minor_courses["Grade"]), 2)
                 minor_term_averages.append(term_minor_avg)
@@ -548,87 +556,105 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
             else:
                 term_minor_avg = 0
 
-            # Calculate overall term average (including both major and minor courses)
+            # Compute the overall term average, including both major and minor courses
             term_avg = round(statistics.mean(term_grades), 2)
             overall_term_averages.append(term_avg)
             overall_total_grades += sum(term_grades)
             overall_total_courses += len(term_grades)
 
-            # Calculate overall average up to this term (cumulative average of all processed grades)
+            # Calculate the cumulative overall average up to this point
             overall_avg = round(overall_total_grades / overall_total_courses, 2)
 
             # Add term averages and overall averages to the transcript
             transcript_txt += f"\nMajor Average = {term_major_avg:<14} Minor Average = {term_minor_avg:<15}\n"
             transcript_txt += f"Term Average = {term_avg:<15} Overall Average = {overall_avg:<20}\n"
 
-        # Add overall averages for this level after processing all terms
+        # Add an end-of-transcript marker for the current level
         transcript_txt += f"\n{'=' * 55}\n"
         transcript_txt += f"{'**** End of Transcript for Level (' + level + ') ****':^55}\n"
         transcript_txt += f"{'=' * 55}\n"
 
-    # Print the transcript
+    # Print the final transcript
     print(transcript_txt)
 
-    # Save the transcript to a file
+    # Save the transcript to a text file
     with open(f"{stdID}FullTranscript.txt", "w") as f:
         f.write(transcript_txt)
-    # Return to the menu
-    clearOutput(10)
 
+    # Call a function to clear the output (assumed to be defined elsewhere)
+    clearOutput(10)
 
 def previousRequestsFeature(stdID, stdDegree, stdLevel):
     try:
+        # Attempt to open the file containing previous requests for the student
         with open(f"{stdID}PreviousRequests.txt", "r") as f:
-            text = f.read()
-            print()
-            print(text)
+            text = f.read()  # Read the entire content of the file
+            print()  # Print an empty line for readability
+            print(text)  # Print the contents of the file (previous requests)
     except FileNotFoundError:
+        # If the file is not found, print an error message
         print(f"No previous requests found for student ID {stdID}.")
+    
+    # Clear the output after a brief delay (helps tidy up the interface/console)
     clearOutput(5)
+
 
 
 def newStudentFeature():
     print("Preparing for a new student...")
     clearOutput(3)
     print("Redirecting you to the main menu...")
+    
+    # Clear the output again after 3 seconds
     clearOutput(3)
+
 
 
 def terminateFeature(requestCounter):
     print("Terminating the program...")
+    
+    # Clear the output after 3 seconds
     clearOutput(3)
+    # This gives the user a summary of the session
     print(
         f"{'=' * 60}\nNumber of request: {requestCounter}\nThank you for using the Student Transcript Generation System\n{'=' * 60}")
-    sys.exit()
+
+    sys.exit()  # Stops the program execution completely
+
 
 
 def featureRequests(feature: str, stdID: int):
-    # Open the file in append mode and check if the header needs to be written
+    # Open the file in append mode ('a+'), allowing both reading and writing
+    # If the file doesn't exist, it will be created
     with open(f"{stdID}PreviousRequests.txt", "a+") as f:
         f.seek(0)  # Move the cursor to the start of the file to check its content
-        content = f.read()
+        content = f.read()  # Read the current content of the file
 
-        # Write header if the file is empty
-        if not content.strip():
-            header = f"{'Request':<20}{'Date':<15}{'Time':<10}\n"
-            separator = "=" * 45 + "\n"
-            f.write(header)
-            f.write(separator)
+        # If the file is empty, write the header for the request log
+        if not content.strip():  # Check if the content is empty or only whitespace
+            header = f"{'Request':<20}{'Date':<15}{'Time':<10}\n"  # Define the header format
+            separator = "=" * 45 + "\n"  # Create a separator line for neatness
+            f.write(header)  # Write the header to the file
+            f.write(separator)  # Write the separator line
 
-        # Format the current date and time
+        # Get the current date in dd/mm/yyyy format
         date_now = date.today().strftime("%d/%m/%Y")
-        time_now = datetime.now().strftime("%I:%M %p")  # 12-hour format with AM/PM
 
-        # Format the request line with proper column widths
+        # Get the current time in 12-hour format with AM/PM
+        time_now = datetime.now().strftime("%I:%M %p")
+
+        # Format the request line with the feature description, date, and time
         text = f"{feature:<20}{date_now:<15}{time_now:<10}\n"
-        f.write(text)
+        f.write(text)  # Write the request line to the file
+
 
 
 def clearOutput(x):
-    # Wait for 3 seconds
-    time.sleep(x)
-    # Clear output
-    def clear(): return os.system('cls')
+    # Wait for 'x' seconds (this helps in creating a delay before clearing the output)
+    time.sleep(x)   
+    # Define a function to clear the console screen
+    def clear(): 
+        return os.system('cls')  # used to clear the screen in Windows    
     clear()
 
 
