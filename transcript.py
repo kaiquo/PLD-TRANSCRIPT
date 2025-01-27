@@ -215,28 +215,33 @@ def detailsFeature(stdID, stdLevel, stdDegree):
 
 def statisticsFeature(stdID, stdDegree, stdLevel):
     try:
-        # Load student data
+        # Load student data from CSV file named after student ID
         dataFrame = pd.read_csv(f"{stdID}.csv")
     except FileNotFoundError as e:
+        # Handle case where file is not found
         print(f"Error: {e}")
         return
     except pd.errors.EmptyDataError as e:
+        # Handle case where the file is empty
         print(f"Error: The file is empty. {e}")
         return
     except Exception as e:
+        # Catch any other unexpected errors
         print(f"An unexpected error occurred: {e}")
         return
 
-    stat_txt = ""  # To store the statistics output text
+    stat_txt = ""
 
-    # Process each degree
+    # Process each degree provided in the list
     for degree in stdDegree:
+        # Filter data for the current degree
         degreeDf = dataFrame[dataFrame["Degree"].str.contains(degree, na=False)]
         if degreeDf.empty:
+            # Handle case where no data is found for the degree
             print(f"No data found for degree: {degree}")
             continue
 
-        # Prepare the statistics header
+        # Prepare header based on student level (Undergraduate or Graduate)
         level_type = "Undergraduate" if stdLevel == "U" else f"Graduate({degree})"
         stat_txt += f"""
 {'=' * 63}
@@ -244,8 +249,9 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
 {'=' * 63}
 """
 
-        # Compute overall and term averages
+        # Compute overall and term averages for grades
         try:
+            # Calculate overall average and overall weighted average
             overall_avg = round(statistics.mean(degreeDf["Grade"]), 2)
             overall_weighted_avg = round(
                 sum(degreeDf["Grade"] * degreeDf["creditHours"]) / degreeDf["creditHours"].sum(), 2)
@@ -253,15 +259,17 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
             stat_txt += f"Overall Weighted Average (major and minor) for all terms: {overall_weighted_avg}\n"
             stat_txt += f"Average (major and minor) of each term:\n"
 
+            # Calculate average for each term
             for term in degreeDf["Term"].unique():
                 termDf = degreeDf[degreeDf["Term"] == term]
                 term_avg = round(statistics.mean(termDf["Grade"]), 2)
                 stat_txt += f"\tTerm {term}: {term_avg}\n"
         except KeyError as e:
+            # Handle missing columns for averages
             print(f"Missing column in data: {e}")
             return
 
-        # Find repeated courses
+        # Find repeated courses in the degree
         try:
             repeated_courses = degreeDf[degreeDf["courseName"].duplicated()]
             repeated_info = (
@@ -270,6 +278,7 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
                 else "No"
             )
         except KeyError as e:
+            # Handle missing column for course names
             print(f"Missing column in data: {e}")
             return
 
@@ -284,22 +293,23 @@ Minimum grade(s) and in which term(s): Term {min_grade_row['Term']}, Grade {min_
 Do you have any repeated course(s)?: {repeated_info}
 """
         except KeyError as e:
+            # Handle missing columns for grades and terms
             print(f"Missing column in data: {e}")
             return
 
-    # Print the statistics
+    # Print the statistics text
     print(stat_txt)
 
-    # Save the statistics to a file
+    # Save the statistics to a text file
     try:
         with open(f"{stdID}Statistics.txt", "w") as f:
             f.write(stat_txt)
     except Exception as e:
+        # Handle errors when writing to the file
         print(f"Error writing to file: {e}")
 
-    # Return to the menu
+    # Call a function to clear the output (assuming it's defined elsewhere)
     clearOutput(10)
-
 
 def majorTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
@@ -381,20 +391,22 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
 def minorTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
-        # Load student data
-        dataFrame = pd.read_csv(f"{stdID}.csv")
-        studentDetails = pd.read_csv("studentDetails.csv")
+        # Load student data from CSV files
+        dataFrame = pd.read_csv(f"{stdID}.csv")  # Student's grade and course data
+        studentDetails = pd.read_csv("studentDetails.csv")  # General student details
     except FileNotFoundError as e:
+        # Handle case where the file is not found
         print(f"Error: {e}")
         return
 
-    # Filter student details
+    # Filter the student details using the provided student ID
     student = studentDetails[studentDetails["stdID"] == stdID]
     if student.empty:
+        # Handle case where no details are found for the student ID
         print(f"No details found for student ID: {stdID}")
         return
 
-    # Prepare the transcript header
+    # Prepare the transcript header with student and academic details
     transcript_txt = f"""
 Name: {student['Name'].iloc[0]:<26} stdID: {stdID:<15}
 College: {student['College'].iloc[0]:<23} Department: {student['Department'].iloc[0]:<15}
@@ -402,17 +414,18 @@ Major: {student['Major'].iloc[0]:<25} Minor: {student['Minor'].iloc[0]:<15}
 Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 """
 
-    overall_minor_sum = 0
-    total_terms = 0
-    term_averages = []
+    overall_minor_sum = 0  # Sum of all grades for minor courses
+    total_terms = 0  # Number of terms with minor courses
+    term_averages = []  # List to store the average for each term
 
     # Separate processing for undergraduate and graduate levels
     for level in stdLevel:
+        # Filter courses for the given level and type "Minor"
         level_courses = dataFrame[(dataFrame["Level"] == level) & (dataFrame["courseType"] == "Minor")]
         if level_courses.empty:
-            continue
+            continue  # Skip if there are no minor courses for this level
 
-        # Process each term
+        # Process each term for the current level
         for term in level_courses.Term.unique():
             termDf = level_courses[level_courses["Term"] == term]
             transcript_txt += f"{'=' * 55}\n"
@@ -421,6 +434,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
             transcript_txt += f"Course ID   Course Name            Credit Hours   Grade\n"
             transcript_txt += f"{'-' * 55}\n"
 
+            # List the minor courses for the current term
             for _, course in termDf.iterrows():
                 transcript_txt += (
                     f"{course['courseID']:<12}{course['courseName']:<23}"
@@ -434,26 +448,26 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
                 overall_minor_sum += sum(termDf["Grade"])
                 total_terms += 1
             else:
-                term_minor_avg = 0
+                term_minor_avg = 0  # No minor courses in the term
 
-            # Compute the overall average, adjusting per term based on the mean of term averages
+            # Compute the overall average for minor courses across all terms
             overall_avg = round(statistics.mean(term_averages), 2) if term_averages else 0
 
-            # Add averages to the transcript
+            # Add term and overall averages to the transcript
             transcript_txt += f"\nMinor Average = {term_minor_avg:<15} Overall Average = {overall_avg}\n"
 
         transcript_txt += f"{'=' * 55}\n"
         transcript_txt += f"{'**** End of Transcript for Level (' + level + ') ****':^55}\n"
         transcript_txt += f"{'=' * 55}\n\n\n\n"
 
-    # Print the transcript
+    # Print the generated transcript
     print(transcript_txt)
 
-    # Save the transcript to a file
+    # Save the transcript to a text file
     with open(f"{stdID}MinorTranscript.txt", "w") as f:
         f.write(transcript_txt)
 
-    # Return to the menu
+    # Call a function to clear the output (assumed to be defined elsewhere)
     clearOutput(10)
 
 
