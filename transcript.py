@@ -1,4 +1,4 @@
-# This work is done by group __:
+# This work is done by group 11:
 # Llegue, Tim Kaiser L.     2024-04875-MN-0, 25%
 # Alindogan, Hanniel II D.  2024-02554-MN-0, 25%
 # Monreal, Xancho Bryan G.  2024-01561-MN-0, 25%
