@@ -12,89 +12,80 @@ import time
 from datetime import datetime, date
 
 def startFeature():
-    print("\033[1mWelcome to the PUP Student Transcript Generation System!\033[0;0m") # Display the welcome message
-    
-    while True: 
-        # Display menu for selecting student level 
+    # Lists to store selected student levels and degrees
+    stdLevel = []
+    stdDegree = []
+
+    # Welcome message
+    print("\033[1mWelcome to the PUP Student Transcript Generation System!\033[0;0m")
+
+    # Main loop to handle the student level selection
+    while True:
+        # Display student level options
         print("=" * 55)
         print("Select Student Level:")
         print("U: Undergraduate")
         print("G: Graduate")
         print("B: Both Undergraduate and Graduate")
         print("=" * 55)
-        
-        # Input for student level selection
-        stdLevel = input("Select student level (Enter to start over): ").upper().strip()
-        
-        # Restart the feature if input is empty
-        if stdLevel == "":
-            clearOutput(0)
-            startFeature()
-        
-        # Validate student level input
-        if stdLevel not in ["U", "G", "B"]:
+
+        # Prompt user to select a student level
+        stdLevelInput = input("Select student level (Enter to start over): ").upper().strip()
+
+        # Restart the process if input is empty
+        if stdLevelInput == "":
+            clearOutput(0)  # Clears the screen/output
+            startFeature()  # Restart the feature
+            return  # Exit the current instance of the function
+
+        # Validate the user input for student level
+        if stdLevelInput in ['U', 'G', 'B']:
+            if stdLevelInput == 'U':  # Undergraduate level selected
+                stdLevel.append('U')
+                stdDegree.append('BS1')  # Default undergraduate degree
+            elif stdLevelInput == 'G':  # Graduate level selected
+                stdLevel.append('G')
+            elif stdLevelInput == 'B':  # Both levels selected
+                stdLevel.extend(['U', 'G'])  # Add both undergraduate and graduate levels
+                stdDegree.append('BS1')  # Add undergraduate degree for both levels
+        else:
+            # Handle invalid input for student level
             print("\033[1mInvalid student level. Please try again.\033[0;0m")
-            continue
-        
-        # If "B" is selected, prompt for graduate degree levels
-        if stdLevel == "B":
-            stdLevel = ["U", "G"]          
-            if stdLevel == ["U", "G"]:
+            print()
+            continue  # Re-prompt the user for a valid student level
+
+        # If Graduate level or Both levels are selected
+        if stdLevelInput in ['G', 'B']:
+            while True:
+                # Display degree level options
                 print("\nSelect Degree Level: ")
                 print("M: Master")
                 print("D: Doctorate")
                 print("B0: Both Master and Doctorate")
                 print("=" * 55)
-                
-                # Input for degree level selection 
-                stdDegree = input("For Graduate level, select the degree (Enter to start over): ").upper().strip()
-                if stdDegree == "":# Restart the feature if input is empty
-                    clearOutput(0)
-                    startFeature()
-                    
-                if stdDegree not in ["M", "D", "B0"]:  # Validate degree level input
-                    print("\033[1mInvalid student level. Please try again.\033[0;0m")
-                    continue
-                    
-                if stdDegree == "B0": # Assign degree levels based on user input
-                    stdDegree = ["B", "M", "D"]
-                elif stdDegree == "M":
-                    stdDegree = ["B", "M"]
-                elif stdDegree == "D":
-                    stdDegree = ["B", "D"]
-        
-        # If "U" is selected, assign undergraduate level and default degree
-        elif stdLevel == "U":
-            stdLevel = ["U"]
-            stdDegree = ["BS1"]
-        
-        # If "G" is selected, prompt for graduate degree levels
-        elif stdLevel == "G":
-            stdLevel = ["G"]
-            if stdLevel == ["G"]:
-                print("\nSelect Degree Level: ")
-                print("M: Master")
-                print("D: Doctorate")
-                print("B0: Both Master and Doctorate")
-                print("=" * 55)
-                
-                # Input for degree level selection
-                stdDegree = input("For Graduate level, select the degree (Enter to start over): ").upper().strip()
-                 
-                if stdDegree == "": # Restart the feature if input is empty
-                    clearOutput(0)
-                    startFeature()
-                
-                if stdDegree not in ["M", "D", "B0"]: # Validate degree level input
-                    print("\033[1mInvalid student level. Please try again.\033[0;0m")
-                    continue  
-                # Assign degree levels based on user input
-                if stdDegree == "B0":
-                    stdDegree = ["M", "D"]
-                elif stdDegree == "M":
-                    stdDegree = ["M"]
-                elif stdDegree == "D":
-                    stdDegree = ["D"]
+
+                # Prompt user to select a degree level for graduate studies
+                stdDegreeInput = input("For Graduate level, select the degree (Enter to start over): ").upper().strip()
+
+                # Restart the process if input is empty
+                if stdDegreeInput == "":
+                    clearOutput(0)  # Clears the screen/output
+                    startFeature()  # Restart the feature
+                    return  # Exit the current instance of the function
+
+                # Validate the user input for graduate degree
+                if stdDegreeInput in ['M', 'D', 'B0']:
+                    if stdDegreeInput == 'M':  # Master's degree selected
+                        stdDegree.append('M1')  # Add Master's degree
+                    elif stdDegreeInput == 'D':  # Doctorate degree selected
+                        stdDegree.append('D1')  # Add Doctorate degree
+                    elif stdDegreeInput == 'B0':  # Both degrees selected
+                        stdDegree.extend(['M1', 'D1'])  # Add both Master's and Doctorate degrees
+                    break  # Exit the loop once valid input is provided
+                else:
+                    # Handle invalid input for degree level
+                    print("\033[1mInvalid student degree. Please try again.\033[0;0m")
+                    print()
 
         # Attempt to load student data from the CSV file
         try:
@@ -104,24 +95,50 @@ def startFeature():
             sys.exit(1)
 
         # Loop for validating student ID
-        while True:
-            try:         
-                user_input = input("\nEnter Student ID (Enter to start over): ")
-                if user_input == "": # Restart the feature if input is empty
-                    clearOutput(0)
-                    startFeature()
-                stdID = int(user_input)
-                df_results = dataFrame[dataFrame["stdID"] == stdID] # Check if the student ID exists in the database
+        # Loop to handle user input for Student ID
+while True:
+    try:
+        # Prompt user to enter their Student ID
+        user_input = input("\nEnter Student ID (Enter to start over): ")
 
-                if not df_results.empty:  # Valid student ID
-                    print("\nStudent ID validated. Proceeding to the menu...\n")
-                    clearOutput(3)
-                    menuFeature(stdLevel, stdDegree, stdID)
-                    break  # Exit loop once ID is validated
-                else:
-                    print("\nInvalid ID. Please try again.")  # No ID found
-            except ValueError:
-                print("\nInvalid input. Please enter a valid numeric Student ID.")  # Invalid input message
+        # Restart the process if input is empty
+        if user_input == "":
+            clearOutput(0)  # Clears the screen/output
+            startFeature()  # Restart the feature
+            return  # Exit the current instance of the function
+
+        # Convert the user input to an integer for validation
+        stdID = int(user_input)
+
+        # Check if the entered Student ID exists in the database
+        df_results = dataFrame[dataFrame["stdID"] == stdID]
+
+        if not df_results.empty:  # If the ID exists in the database
+            # Extract the student's level from the record
+            studentLevel = df_results['Level'].iloc[0]
+
+            # Validate the selected student level against the student's record
+            if stdLevelInput not in studentLevel and stdLevelInput != 'B':
+                print(f"\033[1mError: Selected level '{stdLevelInput}' does not match student record level '{studentLevel}'.\033[0;0m\n")
+                continue  # Re-prompt the user for a valid ID
+
+            # Additional validation if both Undergraduate and Graduate levels are selected
+            if stdLevelInput == 'B' and ('U' not in studentLevel and 'G' not in studentLevel):
+                print("\033[1mError: Both Undergraduate and Graduate levels do not match the student record.\033[0;0m\n")
+                continue  # Re-prompt the user for a valid ID
+
+            # If all validations pass
+            print("\nStudent ID validated. Proceeding to the menu...\n")
+            clearOutput(3)  # Clear the screen before proceeding
+            menuFeature(stdLevel, stdDegree, stdID)  # Navigate to the menu feature
+            break  # Exit the loop after successful validation
+        else:
+            # If the ID does not exist in the database
+            print("\nInvalid ID. Please try again.")
+
+    # Handle non-numeric input for Student ID
+    except ValueError:
+        print("\nInvalid input. Please enter a valid numeric Student ID.")
 
 
 def menuFeature(stdLevel, stdDegree, stdID):
@@ -242,10 +259,19 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
             continue
 
         # Prepare header based on student level (Undergraduate or Graduate)
-        level_type = "Undergraduate" if stdLevel == "U" else f"Graduate({degree})"
+        # Determine the correct level type
+        if "U" in stdLevel and degree == "BS1":
+            level_type = "Undergraduate"
+        elif "G" in stdLevel:
+            # Map degree codes to readable names
+            degree_map = {"M1": "M", "D1": "D"}
+            degree_label = degree_map.get(degree, degree)  # Default to original if not mapped
+            level_type = f"Graduate ({degree_label})"
+        else:
+            level_type = "Unknown Level"
         stat_txt += f"""
 {'=' * 63}
-  ******************   {level_type} Level   ******************
+*****************   {level_type} Level   *****************
 {'=' * 63}
 """
 
@@ -253,10 +279,7 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
         try:
             # Calculate overall average and overall weighted average
             overall_avg = round(statistics.mean(degreeDf["Grade"]), 2)
-            overall_weighted_avg = round(
-                sum(degreeDf["Grade"] * degreeDf["creditHours"]) / degreeDf["creditHours"].sum(), 2)
             stat_txt += f"Overall Average (major and minor) for all terms: {overall_avg}\n"
-            stat_txt += f"Overall Weighted Average (major and minor) for all terms: {overall_weighted_avg}\n"
             stat_txt += f"Average (major and minor) of each term:\n"
 
             # Calculate average for each term
@@ -604,9 +627,9 @@ def newStudentFeature():
     print("Preparing for a new student...")
     clearOutput(3)
     print("Redirecting you to the main menu...")
-    
-    # Clear the output again after 3 seconds
     clearOutput(3)
+    #Return back to the start feature for new student
+    startFeature()
 
 
 
