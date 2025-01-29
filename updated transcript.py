@@ -145,8 +145,11 @@ def menuFeature(stdLevel, stdDegree, stdID):
     requestCounter = 0   # Initialize a counter to track the number of requests made during the session
 
     while True:
+        # Display the menu header with bold formatting
         print("       \033[1mStudent Transcript Generation System Menu\033[0;0m")
         print("=" * 55)
+        
+        # Display available menu options
         print("1. Student details")
         print("2. Statistics")
         print("3. Transcript based on major courses")
@@ -157,52 +160,64 @@ def menuFeature(stdLevel, stdDegree, stdID):
         print("8. Terminate the system")
         print("=" * 55)
 
-        choice = input("\033[1mEnter your feature: \033[0;0m") # Get the user's menu choice
+        # Get the user's menu choice
+        choice = input("\033[1mEnter your feature: \033[0;0m") 
 
-        # repititiom structure to display features 
+        # Handle user input and call the corresponding feature function
         if choice == "1":
-            requestCounter += 1 # Increment request counter
-            featureRequests("Student Details", stdID)  
-            detailsFeature(stdID, stdLevel, stdDegree)  
-        elif choice == "2":
-            requestCounter += 1 # Increment request counter
-            featureRequests("Statistics", stdID)
-            statisticsFeature(stdID, stdDegree, stdLevel)  
-        elif choice == "3":
-            requestCounter += 1 # Increment request counter
-            featureRequests("Major Transcript", stdID)
-            majorTranscriptFeature(stdID, stdDegree, stdLevel)
-        elif choice == "4":
-            requestCounter += 1 # Increment request counter
-            featureRequests("Minor Transcript", stdID)
-            minorTranscriptFeature(stdID, stdDegree, stdLevel)
-        elif choice == "5":
-            requestCounter += 1 # Increment request counter
-            featureRequests("Full Transcript", stdID)
-            fullTranscriptFeature(stdID, stdDegree, stdLevel)
-        elif choice == "6":
-            requestCounter += 1 # Increment request counter
-            featureRequests("Previous Request", stdID)
-            previousRequestsFeature(stdID, stdDegree, stdLevel)
-        elif choice == "7":
-            requestCounter += 1 # Increment request counter
-            newStudentFeature()  # Functionality to select a new student
-            break  # Exit the menu loop for a new student
+            requestCounter += 1  # Increment request counter for tracking
+            featureRequests("Student Details", stdID)  # Log request type
+            detailsFeature(stdID, stdLevel, stdDegree)  # Display student details
 
-        # Option 8: Terminate the system
+        elif choice == "2":
+            requestCounter += 1  # Increment request counter
+            featureRequests("Statistics", stdID)  # Log request type
+            statisticsFeature(stdID, stdDegree, stdLevel)  # Display statistics
+
+        elif choice == "3":
+            requestCounter += 1  # Increment request counter
+            featureRequests("Major Transcript", stdID)  # Log request type
+            majorTranscriptFeature(stdID, stdDegree, stdLevel)  # Generate major courses transcript
+
+        elif choice == "4":
+            requestCounter += 1  # Increment request counter
+            featureRequests("Minor Transcript", stdID)  # Log request type
+            minorTranscriptFeature(stdID, stdDegree, stdLevel)  # Generate minor courses transcript
+
+        elif choice == "5":
+            requestCounter += 1  # Increment request counter
+            featureRequests("Full Transcript", stdID)  # Log request type
+            fullTranscriptFeature(stdID, stdDegree, stdLevel)  # Generate full transcript
+
+        elif choice == "6":
+            requestCounter += 1  # Increment request counter
+            featureRequests("Previous Request", stdID)  # Log request type
+            previousRequestsFeature(stdID, stdDegree, stdLevel)  # Show previous transcript requests
+
+        elif choice == "7":
+            requestCounter += 1  # Increment request counter
+            newStudentFeature()  # Functionality to select a new student
+            break  # Exit the menu loop to allow a new student selection
+
         elif choice == "8":
-            terminateFeature(requestCounter)  # Handle termination logic
-            break  # Exit the menu loop and end the program
+            terminateFeature(requestCounter)  # Handle termination logic and log total requests
+            break  # Exit the menu loop and terminate the system
+
         else:
-            print("Invalid input. Please try again.")
+            print("Invalid input. Please try again.")  # Handle invalid input
+
 
 
 def detailsFeature(stdID, stdLevel, stdDegree):
-    dataFrame = pd.read_csv("studentDetails.csv") # Reads the student details from the CSV file into a DataFrame
-    stdDetail = dataFrame[dataFrame["stdID"] == stdID]# Filters the DataFrame to find the specific student by their ID
-    stdDetail_txt = ""
-    term = ""
-    rowLen = len(stdDegree) # Number of degree levels associated with the student
+    # Reads the student details from the CSV file into a DataFrame
+    dataFrame = pd.read_csv("studentDetails.csv")  
+
+    # Filters the DataFrame to find the specific student by their ID
+    stdDetail = dataFrame[dataFrame["stdID"] == stdID]
+
+    stdDetail_txt = ""  # Initialize an empty string to store student details
+    term = ""  # Initialize an empty string to store the terms
+    rowLen = len(stdDegree)  # Determine the number of degree levels associated with the student
 
     # Concatenate terms based on the number of degree levels
     for i in range(rowLen):
@@ -211,7 +226,7 @@ def detailsFeature(stdID, stdLevel, stdDegree):
         else:
             term += ", " + str(stdDetail.Terms.iloc[i])  # Add subsequent terms with a comma separator
 
-    # Construct the student's detail string
+    # Construct a formatted string containing the student's details
     stdDetail_txt += (f"Name: {stdDetail.Name.iloc[0]}\n"
                       f"stdID: {stdID}\n"
                       f"Level(s): {', '.join(stdLevel)}\n"
@@ -219,23 +234,25 @@ def detailsFeature(stdID, stdLevel, stdDegree):
                       f"College(s): {stdDetail.College.iloc[0]}\n"
                       f"Department(s): {stdDetail.Department.iloc[0]}\n")
 
+    # Print the student details to the console
     print("\n" + stdDetail_txt)
 
     # Write the student details to a text file named after the student's ID
     with open(f"{stdID}details.txt", "w") as f:
         f.write(stdDetail_txt)  # Save the details
-        f.close()
+        f.close()  # Close the file (not strictly necessary as 'with open' handles it)
 
-    # Clears the screen, waits for a short duration, and returns to the menu feature
+    # Clears the screen, waits for a short duration (5 seconds), and returns to the menu feature
     clearOutput(5)
+
 
 
 def statisticsFeature(stdID, stdDegree, stdLevel):
     try:
-        # Load student data from CSV file named after student ID
+        # Load student data from a CSV file named after the student's ID
         dataFrame = pd.read_csv(f"{stdID}.csv")
     except FileNotFoundError as e:
-        # Handle case where file is not found
+        # Handle case where the file does not exist
         print(f"Error: {e}")
         return
     except pd.errors.EmptyDataError as e:
@@ -247,19 +264,19 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
         print(f"An unexpected error occurred: {e}")
         return
 
-    stat_txt = ""
+    stat_txt = ""  # Initialize a string to store statistics data
 
-    # Process each degree provided in the list
+    # Process each degree associated with the student
     for degree in stdDegree:
         # Filter data for the current degree
         degreeDf = dataFrame[dataFrame["Degree"].str.contains(degree, na=False)]
+        
         if degreeDf.empty:
-            # Handle case where no data is found for the degree
+            # Handle case where no data is found for the specified degree
             print(f"No data found for degree: {degree}")
             continue
 
-        # Prepare header based on student level (Undergraduate or Graduate)
-        # Determine the correct level type
+        # Determine the correct student level type (Undergraduate or Graduate)
         if "U" in stdLevel and degree == "BS1":
             level_type = "Undergraduate"
         elif "G" in stdLevel:
@@ -269,30 +286,31 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
             level_type = f"Graduate ({degree_label})"
         else:
             level_type = "Unknown Level"
+
+        # Create a section header for the statistics report
         stat_txt += f"""
 {'=' * 63}
 *******************   {level_type} Level   *******************
 {'=' * 63}
 """
 
-        # Compute overall and term averages for grades
+        # Compute overall and term-wise averages for grades
         try:
-            # Calculate overall average and overall weighted average
-            overall_avg = round(statistics.mean(degreeDf["Grade"]), 2)
+            overall_avg = round(statistics.mean(degreeDf["Grade"]), 2)  # Calculate overall average grade
             stat_txt += f"Overall Average (major and minor) for all terms: {overall_avg}\n"
             stat_txt += f"Average (major and minor) of each term:\n"
 
-            # Calculate average for each term
+            # Compute term-wise averages
             for term in degreeDf["Term"].unique():
                 termDf = degreeDf[degreeDf["Term"] == term]
                 term_avg = round(statistics.mean(termDf["Grade"]), 2)
                 stat_txt += f"\tTerm {term}: {term_avg}\n"
         except KeyError as e:
-            # Handle missing columns for averages
+            # Handle missing column errors for grade computation
             print(f"Missing column in data: {e}")
             return
 
-        # Find repeated courses in the degree
+        # Identify repeated courses within the degree
         try:
             repeated_courses = degreeDf[degreeDf["courseName"].duplicated()]
             repeated_info = (
@@ -301,14 +319,14 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
                 else "No"
             )
         except KeyError as e:
-            # Handle missing column for course names
+            # Handle missing column errors for course names
             print(f"Missing column in data: {e}")
             return
 
-        # Find maximum and minimum grades
+        # Find the highest and lowest grades obtained
         try:
-            max_grade_row = degreeDf.loc[degreeDf["Grade"].idxmax()]
-            min_grade_row = degreeDf.loc[degreeDf["Grade"].idxmin()]
+            max_grade_row = degreeDf.loc[degreeDf["Grade"].idxmax()]  # Get row with highest grade
+            min_grade_row = degreeDf.loc[degreeDf["Grade"].idxmin()]  # Get row with lowest grade
 
             stat_txt += f"""
 Maximum grade(s) and in which term(s): Term {max_grade_row['Term']}, Grade {max_grade_row['Grade']}
@@ -316,23 +334,24 @@ Minimum grade(s) and in which term(s): Term {min_grade_row['Term']}, Grade {min_
 Do you have any repeated course(s)?: {repeated_info}
 """
         except KeyError as e:
-            # Handle missing columns for grades and terms
+            # Handle missing column errors for grade and term retrieval
             print(f"Missing column in data: {e}")
             return
 
-    # Print the statistics text
+    # Print the generated statistics report
     print(stat_txt)
 
-    # Save the statistics to a text file
+    # Save the statistics to a text file named after the student's ID
     try:
         with open(f"{stdID}Statistics.txt", "w") as f:
             f.write(stat_txt)
     except Exception as e:
-        # Handle errors when writing to the file
+        # Handle errors that may occur while writing to the file
         print(f"Error writing to file: {e}")
 
     # Call a function to clear the output (assuming it's defined elsewhere)
     clearOutput(10)
+
 
 def majorTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
