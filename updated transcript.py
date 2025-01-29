@@ -1,4 +1,4 @@
-# This work is done by group 11:
+# This work is done by group 10:
 # Llegue, Tim Kaiser L.     2024-04875-MN-0, 25%
 # Alindogan, Hanniel II D.  2024-02554-MN-0, 25%
 # Monreal, Xancho Bryan G.  2024-01561-MN-0, 25%
@@ -10,6 +10,7 @@ import statistics
 import pandas as pd
 import time
 from datetime import datetime, date
+
 
 def startFeature():
     # Lists to store selected student levels and degrees
@@ -114,18 +115,43 @@ def startFeature():
                 df_results = dataFrame[dataFrame["stdID"] == stdID]
 
                 if not df_results.empty:  # If the ID exists in the database
-                    # Extract the student's level from the record
-                    studentLevel = df_results['Level'].iloc[0]
+                    # Extract the student's level and degree(s) from the record
+                    studentLevel = df_results['Level'].tolist()  # Get all levels as a list
+                    studentDegree = df_results['Degree'].tolist()  # Get all degrees as a list
 
                     # Validate the selected student level against the student's record
                     if stdLevelInput not in studentLevel and stdLevelInput != 'B':
-                        print(f"\033[1mError: Selected level '{stdLevelInput}' does not match student record level '{studentLevel}'.\033[0;0m\n")
+                        # Display error if the level doesn't match
+                        print(
+                            f"\033[1mError: Selected level '{stdLevelInput}' does not match student record level '{', '.join(studentLevel)}'.\033[0;0m\n")
                         continue  # Re-prompt the user for a valid ID
 
                     # Additional validation if both Undergraduate and Graduate levels are selected
-                    if stdLevelInput == 'B' and ('U' not in studentLevel and 'G' not in studentLevel):
-                        print("\033[1mError: Both Undergraduate and Graduate levels do not match the student record.\033[0;0m\n")
+                    if stdLevelInput == 'B' and not all(level in studentLevel for level in ['U', 'G']):
+                        # Display error if both levels are not found
+                        print(
+                            "\033[1mError: Both Undergraduate and Graduate levels do not match the student record.\033[0;0m\n")
                         continue  # Re-prompt the user for a valid ID
+
+                        # Validate the selected degree(s) against the student's record only if "U" wasn't selected
+                    if stdLevelInput != 'U':
+                        if stdDegreeInput == 'M' and 'M1' not in studentDegree:
+                            # Display error if Master's degree doesn't match
+                            print(
+                                "\033[1mError: Selected degree 'Master' does not match student record.\033[0;0m\n")
+                            continue
+
+                        if stdDegreeInput == 'D' and 'D1' not in studentDegree:
+                            # Display error if Doctorate degree doesn't match
+                            print(
+                                "\033[1mError: Selected degree 'Doctorate' does not match student record.\033[0;0m\n")
+                            continue
+
+                        if stdDegreeInput == 'B0' and not all(degree in studentDegree for degree in ['M1', 'D1']):
+                            # Display error if both Master's and Doctorate degrees don't match
+                            print(
+                                "\033[1mError: Both Master and Doctorate degrees do not match student record.\033[0;0m\n")
+                            continue
 
                     # If all validations pass
                     print("\nStudent ID validated. Proceeding to the menu...\n")
@@ -142,13 +168,13 @@ def startFeature():
 
 
 def menuFeature(stdLevel, stdDegree, stdID):
-    requestCounter = 0   # Initialize a counter to track the number of requests made during the session
+    requestCounter = 0  # Initialize a counter to track the number of requests made during the session
 
     while True:
         # Display the menu header with bold formatting
         print("       \033[1mStudent Transcript Generation System Menu\033[0;0m")
         print("=" * 55)
-        
+
         # Display available menu options
         print("1. Student details")
         print("2. Statistics")
@@ -161,7 +187,7 @@ def menuFeature(stdLevel, stdDegree, stdID):
         print("=" * 55)
 
         # Get the user's menu choice
-        choice = input("\033[1mEnter your feature: \033[0;0m") 
+        choice = input("\033[1mEnter your feature: \033[0;0m")
 
         # Handle user input and call the corresponding feature function
         if choice == "1":
@@ -207,10 +233,9 @@ def menuFeature(stdLevel, stdDegree, stdID):
             print("Invalid input. Please try again.")  # Handle invalid input
 
 
-
 def detailsFeature(stdID, stdLevel, stdDegree):
     # Reads the student details from the CSV file into a DataFrame
-    dataFrame = pd.read_csv("studentDetails.csv")  
+    dataFrame = pd.read_csv("studentDetails.csv")
 
     # Filters the DataFrame to find the specific student by their ID
     stdDetail = dataFrame[dataFrame["stdID"] == stdID]
@@ -246,7 +271,6 @@ def detailsFeature(stdID, stdLevel, stdDegree):
     clearOutput(5)
 
 
-
 def statisticsFeature(stdID, stdDegree, stdLevel):
     try:
         # Load student data from a CSV file named after the student's ID
@@ -270,7 +294,7 @@ def statisticsFeature(stdID, stdDegree, stdLevel):
     for degree in stdDegree:
         # Filter data for the current degree
         degreeDf = dataFrame[dataFrame["Degree"].str.contains(degree, na=False)]
-        
+
         if degreeDf.empty:
             # Handle case where no data is found for the specified degree
             print(f"No data found for degree: {degree}")
@@ -386,14 +410,14 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
     # Process each level (Undergraduate or Graduate) separately
     for level in stdLevel:
         # Filter only major courses for the given level
-        level_courses = dataFrame[(dataFrame["Level"] == level) & (dataFrame["cousreType"] == "Major")]
+        level_courses = dataFrame[(dataFrame["Level"] == level) & (dataFrame["courseType"] == "Major")]
         if level_courses.empty:
             continue  # Skip processing if no major courses exist for this level
 
         # Process transcript data term by term
         for term in level_courses.Term.unique():
             termDf = level_courses[level_courses["Term"] == term]  # Filter courses for the specific term
-            
+
             # Add term header to transcript
             transcript_txt += f"{'=' * 55}\n"
             transcript_txt += f"{'':^9} {'Term ' + str(term):^35} {'':^9}\n"
@@ -437,7 +461,8 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 
     # Return to the main menu after a short delay (assumes clearOutput is defined elsewhere)
     clearOutput(10)
-    
+
+
 def minorTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
         # Load student data from CSV files
@@ -527,8 +552,8 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
     # Clear the output after a delay (assuming clearOutput is defined elsewhere)
     clearOutput(10)
 
-def fullTranscriptFeature(stdID, stdDegree, stdLevel):
 
+def fullTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
         # Load student data from CSV files
         dataFrame = pd.read_csv(f"{stdID}.csv")  # Contains student's grades and course details
@@ -556,7 +581,7 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
     # Initialize lists to store grades for computing averages later
     overall_major_grades = []  # Stores all major course grades
     overall_minor_grades = []  # Stores all minor course grades
-    overall_term_grades = []   # Stores all term grades
+    overall_term_grades = []  # Stores all term grades
 
     # Process transcript data for each academic level (e.g., Undergraduate, Graduate)
     for level in stdLevel:
@@ -644,10 +669,9 @@ def previousRequestsFeature(stdID, stdDegree, stdLevel):
     except FileNotFoundError:
         # If the file is not found, print an error message
         print(f"No previous requests found for student ID {stdID}.")
-    
+
     # Clear the output after a brief delay (helps tidy up the interface/console)
     clearOutput(5)
-
 
 
 def newStudentFeature():
@@ -655,16 +679,14 @@ def newStudentFeature():
     clearOutput(3)  # Clear the output 3 times to give the user a clean interface
     print("Redirecting you to the main menu...")  # Inform the user that they are being redirected
     clearOutput(3)  # Clear the output again for a clean transition to the next screen
-    
+
     # Call the startFeature() function, presumably redirecting to the main menu or initial step
     startFeature()
 
 
-
-
 def terminateFeature(requestCounter):
     print("Terminating the program...")
-    
+
     # Clear the output after 3 seconds
     clearOutput(3)
     # This gives the user a summary of the session
@@ -672,7 +694,6 @@ def terminateFeature(requestCounter):
         f"{'=' * 60}\nNumber of request: {requestCounter}\nThank you for using the Student Transcript Generation System\n{'=' * 60}")
 
     sys.exit()  # Stops the program execution completely
-
 
 
 def featureRequests(feature: str, stdID: int):
@@ -700,13 +721,14 @@ def featureRequests(feature: str, stdID: int):
         f.write(text)  # Write the request line to the file
 
 
-
 def clearOutput(x):
     # Wait for 'x' seconds (this helps in creating a delay before clearing the output)
-    time.sleep(x)   
+    time.sleep(x)
+
     # Define a function to clear the console screen
-    def clear(): 
-        return os.system('cls')  # used to clear the screen in Windows    
+    def clear():
+        return os.system('cls')  # used to clear the screen in Windows
+
     clear()
 
 
