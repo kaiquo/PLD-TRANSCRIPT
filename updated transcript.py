@@ -355,20 +355,23 @@ Do you have any repeated course(s)?: {repeated_info}
 
 def majorTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
-        # Load student data
+        # Load student data from the student's CSV file
         dataFrame = pd.read_csv(f"{stdID}.csv")
+        # Load general student details from a separate CSV file
         studentDetails = pd.read_csv("studentDetails.csv")
     except FileNotFoundError as e:
+        # Handle missing file error
         print(f"Error: {e}")
         return
 
-    # Filter student details
+    # Filter student details based on the given student ID
     student = studentDetails[studentDetails["stdID"] == stdID]
     if student.empty:
+        # Handle case where student details are not found
         print(f"No details found for student ID: {stdID}")
         return
 
-    # Prepare the transcript header
+    # Prepare the transcript header with formatted student details
     transcript_txt = f"""
 Name: {student['Name'].iloc[0]:<26} stdID: {stdID:<15}
 College: {student['College'].iloc[0]:<23} Department: {student['Department'].iloc[0]:<15}
@@ -376,79 +379,83 @@ Major: {student['Major'].iloc[0]:<25} Minor: {student['Minor'].iloc[0]:<15}
 Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 """
 
-    overall_major_sum = 0
-    total_terms = 0
-    term_averages = []
+    overall_major_sum = 0  # Sum of major course grades across all terms
+    total_terms = 0  # Counter for total terms processed
+    term_averages = []  # List to store term averages for major courses
 
-    # Separate processing for undergraduate and graduate levels
+    # Process each level (Undergraduate or Graduate) separately
     for level in stdLevel:
+        # Filter only major courses for the given level
         level_courses = dataFrame[(dataFrame["Level"] == level) & (dataFrame["cousreType"] == "Major")]
         if level_courses.empty:
-            continue
+            continue  # Skip processing if no major courses exist for this level
 
-        # Process each term
+        # Process transcript data term by term
         for term in level_courses.Term.unique():
-            termDf = level_courses[level_courses["Term"] == term]
+            termDf = level_courses[level_courses["Term"] == term]  # Filter courses for the specific term
+            
+            # Add term header to transcript
             transcript_txt += f"{'=' * 55}\n"
             transcript_txt += f"{'':^9} {'Term ' + str(term):^35} {'':^9}\n"
             transcript_txt += f"{'=' * 55}\n"
             transcript_txt += f"Course ID   Course Name            Credit Hours   Grade\n"
             transcript_txt += f"{'-' * 55}\n"
 
+            # Add course details to transcript
             for _, course in termDf.iterrows():
                 transcript_txt += (
                     f"{course['courseID']:<12}{course['courseName']:<23}"
                     f"{course['creditHours']:<16}{course['Grade']}\n"
                 )
 
-            # Compute the term's major average
+            # Compute the term's major course average
             if not termDf.empty:
                 term_major_avg = round(statistics.mean(termDf["Grade"]), 2)
-                term_averages.append(term_major_avg)
-                overall_major_sum += sum(termDf["Grade"])
-                total_terms += 1
+                term_averages.append(term_major_avg)  # Store term average
+                overall_major_sum += sum(termDf["Grade"])  # Add term grades to overall sum
+                total_terms += 1  # Increment term counter
             else:
-                term_major_avg = 0
+                term_major_avg = 0  # Set default value if no major courses exist in the term
 
-            # Compute the overall average, adjusting per term based on the mean of term averages
+            # Compute the overall major course average across all terms
             overall_avg = round(statistics.mean(term_averages), 2) if term_averages else 0
 
-            # Add averages to the transcript
+            # Add term and overall averages to the transcript
             transcript_txt += f"\nMajor Average = {term_major_avg:<15} Overall Average = {overall_avg}\n"
 
+        # Add a footer for the current level transcript
         transcript_txt += f"{'=' * 55}\n"
         transcript_txt += f"{'**** End of Transcript for Level (' + level + ') ****':^55}\n"
         transcript_txt += f"{'=' * 55}\n\n\n\n"
 
-    # Print the transcript
+    # Print the generated transcript
     print(transcript_txt)
 
-    # Save the transcript to a file
+    # Save the transcript to a file named after the student's ID
     with open(f"{stdID}MajorTranscript.txt", "w") as f:
         f.write(transcript_txt)
 
-    # Return to the menu
+    # Return to the main menu after a short delay (assumes clearOutput is defined elsewhere)
     clearOutput(10)
-
-
+    
 def minorTranscriptFeature(stdID, stdDegree, stdLevel):
     try:
         # Load student data from CSV files
-        dataFrame = pd.read_csv(f"{stdID}.csv")  # Student's grade and course data
-        studentDetails = pd.read_csv("studentDetails.csv")  # General student details
+        dataFrame = pd.read_csv(f"{stdID}.csv")  # Contains student's grades and course details
+        studentDetails = pd.read_csv("studentDetails.csv")  # Contains general student information
     except FileNotFoundError as e:
-        # Handle case where the file is not found
+        # Handle missing file error
         print(f"Error: {e}")
         return
 
-    # Filter the student details using the provided student ID
+    # Extract student details using stdID
     student = studentDetails[studentDetails["stdID"] == stdID]
     if student.empty:
-        # Handle case where no details are found for the student ID
+        # Handle case where student ID is not found in details file
         print(f"No details found for student ID: {stdID}")
         return
 
-    # Prepare the transcript header with student and academic details
+    # Format transcript header with student details
     transcript_txt = f"""
 Name: {student['Name'].iloc[0]:<26} stdID: {stdID:<15}
 College: {student['College'].iloc[0]:<23} Department: {student['Department'].iloc[0]:<15}
@@ -456,20 +463,23 @@ Major: {student['Major'].iloc[0]:<25} Minor: {student['Minor'].iloc[0]:<15}
 Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 """
 
+    # Initialize variables for storing minor course averages
     overall_minor_sum = 0  # Sum of all grades for minor courses
-    total_terms = 0  # Number of terms with minor courses
+    total_terms = 0  # Number of terms that include minor courses
     term_averages = []  # List to store the average for each term
 
-    # Separate processing for undergraduate and graduate levels
+    # Process transcript data for each academic level (e.g., Undergraduate, Graduate)
     for level in stdLevel:
-        # Filter courses for the given level and type "Minor"
+        # Filter courses for the given level that are classified as "Minor"
         level_courses = dataFrame[(dataFrame["Level"] == level) & (dataFrame["courseType"] == "Minor")]
         if level_courses.empty:
-            continue  # Skip if there are no minor courses for this level
+            continue  # Skip if no minor courses exist for this level
 
-        # Process each term for the current level
-        for term in level_courses.Term.unique():
-            termDf = level_courses[level_courses["Term"] == term]
+        # Process each academic term within the current level
+        for term in sorted(level_courses["Term"].unique()):
+            termDf = level_courses[level_courses["Term"] == term]  # Filter data for the term
+
+            # Format the term header in the transcript
             transcript_txt += f"{'=' * 55}\n"
             transcript_txt += f"{'':^9} {'Term ' + str(term):^35} {'':^9}\n"
             transcript_txt += f"{'=' * 55}\n"
@@ -483,21 +493,22 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
                     f"{course['creditHours']:<16}{course['Grade']}\n"
                 )
 
-            # Compute the term's minor average
+            # Compute the term's minor course average
             if not termDf.empty:
-                term_minor_avg = round(statistics.mean(termDf["Grade"]), 2)
-                term_averages.append(term_minor_avg)
-                overall_minor_sum += sum(termDf["Grade"])
-                total_terms += 1
+                term_minor_avg = round(statistics.mean(termDf["Grade"]), 2)  # Calculate average
+                term_averages.append(term_minor_avg)  # Store term average for later use
+                overall_minor_sum += sum(termDf["Grade"])  # Update overall minor sum
+                total_terms += 1  # Increase count of terms with minor courses
             else:
                 term_minor_avg = 0  # No minor courses in the term
 
-            # Compute the overall average for minor courses across all terms
+            # Compute the overall minor course average across all terms so far
             overall_avg = round(statistics.mean(term_averages), 2) if term_averages else 0
 
-            # Add term and overall averages to the transcript
+            # Append term and overall averages to the transcript
             transcript_txt += f"\nMinor Average = {term_minor_avg:<15} Overall Average = {overall_avg}\n"
 
+        # Mark the end of the transcript for the current level
         transcript_txt += f"{'=' * 55}\n"
         transcript_txt += f"{'**** End of Transcript for Level (' + level + ') ****':^55}\n"
         transcript_txt += f"{'=' * 55}\n\n\n\n"
@@ -506,31 +517,35 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
     print(transcript_txt)
 
     # Save the transcript to a text file
-    with open(f"{stdID}MinorTranscript.txt", "w") as f:
-        f.write(transcript_txt)
+    try:
+        with open(f"{stdID}MinorTranscript.txt", "w") as f:
+            f.write(transcript_txt)
+    except Exception as e:
+        # Handle any errors that may occur while saving the file
+        print(f"Error writing transcript to file: {e}")
 
-    # Call a function to clear the output (assumed to be defined elsewhere)
+    # Clear the output after a delay (assuming clearOutput is defined elsewhere)
     clearOutput(10)
 
-
 def fullTranscriptFeature(stdID, stdDegree, stdLevel):
+
     try:
         # Load student data from CSV files
-        dataFrame = pd.read_csv(f"{stdID}.csv")  
-        studentDetails = pd.read_csv("studentDetails.csv")  # This file contains general student info
+        dataFrame = pd.read_csv(f"{stdID}.csv")  # Contains student's grades and course details
+        studentDetails = pd.read_csv("studentDetails.csv")  # Contains general student info
     except FileNotFoundError as e:
-        # If a file is missing, handle the exception by printing an error message
+        # Handle missing file error
         print(f"Error: {e}")
         return
 
-    # Filter student details using the student ID to get the specific student's information
+    # Extract student details using stdID
     student = studentDetails[studentDetails["stdID"] == stdID]
     if student.empty:
-        # If no student information is found for the given ID, print a message and exit
+        # Handle case where student ID is not found in details file
         print(f"No details found for student ID: {stdID}")
         return
 
-    # Prepare the transcript header, using data from the studentDetails dataframe
+    # Format transcript header with student details
     transcript_txt = f"""
 Name: {student['Name'].iloc[0]:<26} stdID: {stdID:<15}
 College: {student['College'].iloc[0]:<23} Department: {student['Department'].iloc[0]:<15}
@@ -538,80 +553,68 @@ Major: {student['Major'].iloc[0]:<25} Minor: {student['Minor'].iloc[0]:<15}
 Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
 """
 
-    # Initialize variables for computing overall statistics
-    overall_major_sum = 0
-    overall_minor_sum = 0
-    overall_total_grades = 0
-    overall_total_courses = 0
-    major_term_averages = []
-    minor_term_averages = []
-    overall_term_averages = []
+    # Initialize lists to store grades for computing averages later
+    overall_major_grades = []  # Stores all major course grades
+    overall_minor_grades = []  # Stores all minor course grades
+    overall_term_grades = []   # Stores all term grades
 
-    # Loop through each academic level (e.g., Undergraduate, Graduate)
+    # Process transcript data for each academic level (e.g., Undergraduate, Graduate)
     for level in stdLevel:
-        # Add a header for the current academic level in the transcript
+        # Add a section header for the current level
         transcript_txt += f"\n{'=' * 55}\n{' Full Transcript for Level ' + level:^55}\n{'=' * 55}\n"
 
-        # Filter the courses based on the current level
+        # Filter courses specific to the current level
         level_courses = dataFrame[dataFrame["Level"] == level]
         if level_courses.empty:
-            # Skip the level if no courses are found for it
-            continue
+            continue  # Skip if no courses are found for this level
 
-        # Process each term (e.g., Fall, Spring) for the current level
-        for term in level_courses.Term.unique():
-            termDf = level_courses[level_courses["Term"] == term]
+        # Process each academic term within the current level
+        for term in sorted(level_courses["Term"].unique()):
+            termDf = level_courses[level_courses["Term"] == term]  # Filter data for the term
+
+            # Format the term header in the transcript
             transcript_txt += f"{'=' * 55}\n"
             transcript_txt += f"{'':^9} {'Term ' + str(term):^35} {'':^9}\n"
             transcript_txt += f"{'=' * 55}\n"
             transcript_txt += f"Course ID   Course Name            Credit Hours   Grade\n"
             transcript_txt += f"{'-' * 55}\n"
 
-            term_grades = []  # List to store grades for the current term
+            term_grades = []  # Stores all grades for the current term
 
-            # Loop through each course in the current term
+            # Iterate through each course in the term
             for _, course in termDf.iterrows():
-                # Add each course's details to the transcript
                 transcript_txt += (
                     f"{course['courseID']:<12}{course['courseName']:<23}"
                     f"{course['creditHours']:<16}{course['Grade']:<8}\n"
                 )
-                term_grades.append(course['Grade'])  # Store the grade for this course
+                term_grades.append(course['Grade'])  # Store course grade for term calculations
 
-            # Separate major and minor courses for this term
+            # Separate major and minor courses for the current term
             major_courses = termDf[termDf["courseType"] == "Major"]
             minor_courses = termDf[termDf["courseType"] == "Minor"]
 
-            # Compute the average grade for major courses this term
+            # Compute the term's average grade for major courses
+            term_major_avg = round(statistics.mean(major_courses["Grade"]), 2) if not major_courses.empty else 0
             if not major_courses.empty:
-                term_major_avg = round(statistics.mean(major_courses["Grade"]), 2)
-                major_term_averages.append(term_major_avg)
-                overall_major_sum += sum(major_courses["Grade"])
-            else:
-                term_major_avg = 0
+                overall_major_grades.extend(major_courses["Grade"])  # Add to overall major grades list
 
-            # Compute the average grade for minor courses this term
+            # Compute the term's average grade for minor courses
+            term_minor_avg = round(statistics.mean(minor_courses["Grade"]), 2) if not minor_courses.empty else 0
             if not minor_courses.empty:
-                term_minor_avg = round(statistics.mean(minor_courses["Grade"]), 2)
-                minor_term_averages.append(term_minor_avg)
-                overall_minor_sum += sum(minor_courses["Grade"])
-            else:
-                term_minor_avg = 0
+                overall_minor_grades.extend(minor_courses["Grade"])  # Add to overall minor grades list
 
-            # Compute the overall term average, including both major and minor courses
-            term_avg = round(statistics.mean(term_grades), 2)
-            overall_term_averages.append(term_avg)
-            overall_total_grades += sum(term_grades)
-            overall_total_courses += len(term_grades)
+            # Compute the overall average for this term (includes both major and minor courses)
+            term_avg = round(statistics.mean(term_grades), 2) if term_grades else 0
+            overall_term_grades.extend(term_grades)  # Add to overall term grades list
 
-            # Calculate the cumulative overall average up to this point
-            overall_avg = round(overall_total_grades / overall_total_courses, 2)
+            # Compute the cumulative overall average across all terms so far
+            overall_avg = round(statistics.mean(overall_term_grades), 2) if overall_term_grades else 0
 
-            # Add term averages and overall averages to the transcript
+            # Append the computed averages to the transcript
             transcript_txt += f"\nMajor Average = {term_major_avg:<14} Minor Average = {term_minor_avg:<15}\n"
             transcript_txt += f"Term Average = {term_avg:<15} Overall Average = {overall_avg:<20}\n"
 
-        # Add an end-of-transcript marker for the current level
+        # Mark the end of the transcript for the current level
         transcript_txt += f"\n{'=' * 55}\n"
         transcript_txt += f"{'**** End of Transcript for Level (' + level + ') ****':^55}\n"
         transcript_txt += f"{'=' * 55}\n"
@@ -620,11 +623,16 @@ Level: {', '.join(stdLevel):<25} Number of terms: {student['Terms'].iloc[0]:<15}
     print(transcript_txt)
 
     # Save the transcript to a text file
-    with open(f"{stdID}FullTranscript.txt", "w") as f:
-        f.write(transcript_txt)
+    try:
+        with open(f"{stdID}FullTranscript.txt", "w") as f:
+            f.write(transcript_txt)
+    except Exception as e:
+        # Handle any errors that may occur while saving the file
+        print(f"Error writing transcript to file: {e}")
 
-    # Call a function to clear the output (assumed to be defined elsewhere)
+    # Clear the output after a delay (assuming clearOutput is defined elsewhere)
     clearOutput(10)
+
 
 def previousRequestsFeature(stdID, stdDegree, stdLevel):
     try:
@@ -643,12 +651,14 @@ def previousRequestsFeature(stdID, stdDegree, stdLevel):
 
 
 def newStudentFeature():
-    print("Preparing for a new student...")
-    clearOutput(3)
-    print("Redirecting you to the main menu...")
-    clearOutput(3)
-    #Return back to the start feature for new student
+    print("Preparing for a new student...")  # Inform the user that the system is preparing for a new student
+    clearOutput(3)  # Clear the output 3 times to give the user a clean interface
+    print("Redirecting you to the main menu...")  # Inform the user that they are being redirected
+    clearOutput(3)  # Clear the output again for a clean transition to the next screen
+    
+    # Call the startFeature() function, presumably redirecting to the main menu or initial step
     startFeature()
+
 
 
 
