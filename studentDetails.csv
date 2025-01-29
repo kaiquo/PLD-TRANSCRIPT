@@ -1,0 +1,19 @@
+Serial,stdID,Name,College,Department,Level,Degree,Major,Minor,Terms
+1,201001000,Jose Rizal,College1,C1Department1,U,BS1,C1D1MajorBS1,C1D1MinorBS1,3
+2,201001000,Jose Rizal,College1,C1Department1,G,M1,C1D1MajorM1,C1D1MinorM1,4
+3,201002000,Miguel Santos,College2,C2Department1,U,BS1,C2D1MajorBS1,C2D1MinorBS1,2
+4,201002000,Miguel Santos,College1,C1Department1,G,D1,C1D1MajorD1,C1D1MinorD1,4
+5,201003000,Maria Clara,College3,C3Department1,U,BS1,C3D1MajorBS1,C3D1MinorBS1,4
+6,201003000,Maria Clara,College1,C1Department1,G,M1,C1D1MajorM1,C1D1MinorM1,3
+7,201003000,Maria Clara,College4,C4Department2,G,D1,C4D2MajorD1,C4D2MinorD1,2
+8,201004000,Mark Reyes,College4,C4Department2,U,BS1,C4D2MajorBS1,C4D2MinorM1,3
+9,201004000,Mark Reyes,College5,C5Department1,G,M1,C5D1MajorM1,C5D1MinorD1,4
+10,201005000,Jowie DeLeon,College3,C3Department1,U,BS1,C3D1MajorBS1,C3D1MinorBS1,3
+11,201006000,Tim Llegue,College1,C1Department1,U,BS1,C1D1MajorBS1,C1D1MinorBS1,8
+12,201006000,Tim Llegue,College1,C1Department1,G,M1,C1D1MajorM1,C1D1MinorM1,4
+13,201006000,Tim Llegue,College1,C1Department1,G,D1,C1D1MajorD1,C1D1MinorD1,6
+14,201007000,Xancho Monreal,College2,C2Department1,U,BS1,C2D1MajorBS1,C2D1MinorBS1,7
+15,201008000,Hanniel II Alindogan,College3,C3Department1,G,M1,C3D1MajorM1,C3D1MinorM1,4
+16,201009000,Simeon III Antiquera,College4,C4Department2,U,BS1,C4D2MajorBS1,C4D2MinorBS1,8
+17,201009000,Simeon III Antiquera,College4,C4Department2,G,M1,C4D2MajorM1,C4D2MinorM1,3
+18,201001001,Alizzander Cahusay,College5,C5Department1,G,D1,C5D1MajorD1,C5D1MinorD1,7
